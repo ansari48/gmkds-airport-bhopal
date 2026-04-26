@@ -24,6 +24,11 @@
       color: var(--text);
       line-height: 1.6;
       overflow-x: hidden;
+      overflow-y: auto;
+    }
+    html {
+      overflow-y: auto;
+      scroll-behavior: smooth;
     }
     #bgCanvas {
       position: fixed; top: 0; left: 0;
@@ -55,7 +60,7 @@
     .hero {
       position: relative; z-index: 1; min-height: 100vh;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; padding: 8rem 2rem 4rem; overflow: hidden;
+      text-align: center; padding: 8rem 2rem 4rem; overflow: clip;
     }
     .hero::before {
       content: ''; position: absolute; inset: 0;
@@ -476,7 +481,7 @@
 <!-- TEAM MEMBER MODAL -->
 <div class="team-modal-overlay" id="teamModal" onclick="closeModal(event)">
   <div class="team-modal">
-    <button class="team-modal-close" onclick="document.getElementById('teamModal').classList.remove('active')">✕</button>
+    <button class="team-modal-close" onclick="document.getElementById('teamModal').classList.remove('active');document.body.style.overflow=''">✕</button>
     <div class="modal-av" id="modalAv">G</div>
     <div class="modal-name" id="modalName">GRECY</div>
     <div class="modal-role" id="modalRole">Airport Manager</div>
@@ -818,6 +823,7 @@
 window.addEventListener('load', function() {
   setTimeout(function() {
     document.getElementById('splash').classList.add('hidden');
+    document.body.style.overflow = '';
   }, 2800);
 });
 
