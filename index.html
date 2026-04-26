@@ -969,302 +969,919 @@ updateClock(); setInterval(updateClock, 1000);
 
 
 // ============================================================
-// IMPROVED ILS ANIMATION
+// REALISTIC ILS ANIMATION
+// ============================================================
+(function(){
+  const canvas = null; // disabled: restored original-style ILS animation below
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, DPR;
+
+  function resize(){
+    DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+    W = canvas.offsetWidth || 900;
+    H = canvas.offsetHeight || 340;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  let frame = 0;
+  let approach = 0.02;
+  let cloudOffset = 0;
+
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function lerp(a,b,t){ return a + (b-a) * t; }
+  function easeOutCubic(x){ return 1 - Math.pow(1-x, 3); }
+  function smoothStep(x){ return x*x*(3-2*x); }
+  function jitter(seed, amount){
+    return (Math.sin(frame*0.045 + seed) + Math.sin(frame*0.021 + seed*2.4)*0.6) * amount;
+  }
+
+  function drawLight(x,y,r,color,alpha){
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = color;
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawFogBand(y, height, alpha, drift){
+    const fog = ctx.createLinearGradient(0,y,0,y+height);
+    fog.addColorStop(0,'rgba(180,215,230,0)');
+    fog.addColorStop(0.5,`rgba(180,215,230,${alpha})`);
+    fog.addColorStop(1,'rgba(180,215,230,0)');
+    ctx.fillStyle = fog;
+    ctx.fillRect(-drift,y,W+Math.abs(drift)*2,height);
+  }
+
+  function drawAircraft(x,y,scale,bank,lightsOn){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(bank);
+    ctx.scale(scale,scale);
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = 'rgba(255,230,130,0.65)';
+    ctx.fillStyle = '#d9e6f2';
+    ctx.strokeStyle = 'rgba(8,18,32,0.75)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(18,0);
+    ctx.quadraticCurveTo(7,-5,-20,-4);
+    ctx.quadraticCurveTo(-24,0,-20,4);
+    ctx.quadraticCurveTo(7,5,18,0);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c8d9e8';
+    ctx.beginPath(); ctx.moveTo(-1,-2); ctx.lineTo(-31,-15); ctx.lineTo(-27,-8); ctx.lineTo(-2,1); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-1,2); ctx.lineTo(-31,15); ctx.lineTo(-27,8); ctx.lineTo(-2,-1); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-18,-3); ctx.lineTo(-30,-12); ctx.lineTo(-27,-3); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-18,3); ctx.lineTo(-30,12); ctx.lineTo(-27,3); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#768da2';
+    ctx.beginPath(); ctx.ellipse(-14,-7,4,2.1,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(-14,7,4,2.1,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(45,65,82,0.9)';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(-9,-5); ctx.lineTo(-24,-11); ctx.moveTo(-9,5); ctx.lineTo(-24,11); ctx.stroke();
+    ctx.fillStyle = '#111927';
+    ctx.beginPath(); ctx.ellipse(8,0,5,1.7,0,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#2f3d4c';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-6,-2.8); ctx.lineTo(-8,-8); ctx.moveTo(-6,2.8); ctx.lineTo(-8,8); ctx.stroke();
+    ctx.fillStyle = '#101820';
+    ctx.beginPath(); ctx.arc(-9,-8,1.8,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-9,8,1.8,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(5,0,1.7,0,Math.PI*2); ctx.fill();
+    if(lightsOn){
+      const strobe = Math.sin(frame*0.35) > 0.82 ? 1 : 0.25;
+      drawLight(18,0,2.2,'#fff8cf',0.95);
+      drawLight(-30,-15,2.3,'#ff3333',0.9);
+      drawLight(-30,15,2.3,'#27ff88',0.9);
+      drawLight(-22,0,1.9,'#ffffff',strobe);
+    }
+    ctx.restore();
+  }
+
+  function drawScene(){
+    ctx.clearRect(0,0,W,H);
+    const horizon = H * 0.68;
+    const groundY = H * 0.75;
+    const runwayNearY = H * 0.96;
+    const runwayFarY = horizon + H * 0.02;
+    const runwayCenterX = W * 0.28;
+    const sky = ctx.createLinearGradient(0,0,0,H*0.78);
+    sky.addColorStop(0,'#010712');
+    sky.addColorStop(0.48,'#031326');
+    sky.addColorStop(1,'#082544');
+    ctx.fillStyle = sky; ctx.fillRect(0,0,W,horizon);
+    const haze = ctx.createLinearGradient(0,horizon-H*0.18,0,horizon+H*0.05);
+    haze.addColorStop(0,'rgba(0,0,0,0)'); haze.addColorStop(1,'rgba(92,142,170,0.22)');
+    ctx.fillStyle = haze; ctx.fillRect(0,horizon-H*0.18,W,H*0.23);
+    drawFogBand(horizon-H*0.08, H*0.12, 0.12, Math.sin(frame*0.01)*28);
+    drawFogBand(horizon+H*0.02, H*0.16, 0.09, Math.cos(frame*0.012)*36);
+    for(let i=0;i<70;i++){
+      const sx = (i*137.508)%W;
+      const sy = (i*91.31)%(H*0.48);
+      const twinkle = (Math.sin(frame*0.025+i*2.1)*0.5+0.5)*0.7;
+      ctx.globalAlpha = twinkle * 0.8;
+      ctx.fillStyle = i%5===0 ? '#aaddff' : '#ffffff';
+      ctx.beginPath(); ctx.arc(sx,sy,i%9===0?1.35:0.75,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    cloudOffset = (cloudOffset + 0.11) % (W+260);
+    ctx.globalAlpha = 0.055; ctx.fillStyle = '#8ab4d4';
+    for(let c=0;c<3;c++){
+      const cx = ((cloudOffset + c*(W/3)) % (W+260)) - 130;
+      const cy = H*0.28 + c*24;
+      const cr = 70 + c*18;
+      ctx.beginPath(); ctx.ellipse(cx,cy,cr,cr*0.4,0,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(cx+48,cy-8,cr*0.7,cr*0.28,0,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    const gnd = ctx.createLinearGradient(0,horizon,0,H);
+    gnd.addColorStop(0,'#0b2212'); gnd.addColorStop(1,'#030806');
+    ctx.fillStyle = gnd; ctx.fillRect(0,horizon,W,H-horizon);
+    const nearHalf = W * 0.19;
+    const farHalf = W * 0.035;
+    const farX = runwayCenterX + W * 0.03;
+    const nearX = runwayCenterX - W * 0.05;
+    const runwayGrad = ctx.createLinearGradient(0,runwayFarY,0,runwayNearY);
+    runwayGrad.addColorStop(0,'#2a2d39'); runwayGrad.addColorStop(1,'#11151f');
+    ctx.fillStyle = runwayGrad;
+    ctx.beginPath();
+    ctx.moveTo(farX-farHalf,runwayFarY); ctx.lineTo(farX+farHalf,runwayFarY); ctx.lineTo(nearX+nearHalf,runwayNearY); ctx.lineTo(nearX-nearHalf,runwayNearY);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.24)'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(farX-farHalf,runwayFarY); ctx.lineTo(nearX-nearHalf,runwayNearY); ctx.moveTo(farX+farHalf,runwayFarY); ctx.lineTo(nearX+nearHalf,runwayNearY); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.72)'; ctx.lineWidth=2; ctx.setLineDash([16,18]);
+    ctx.beginPath(); ctx.moveTo(farX,runwayFarY+4); ctx.lineTo(nearX,runwayNearY-8); ctx.stroke(); ctx.setLineDash([]);
+    for(let i=0;i<8;i++){
+      const k = 0.14 + i*0.07;
+      const y = lerp(runwayFarY, runwayNearY, k);
+      const cx = lerp(farX, nearX, k);
+      const hw = lerp(farHalf, nearHalf, k);
+      const barW = hw * 0.22;
+      const barH = lerp(2,7,k);
+      ctx.fillStyle = `rgba(255,255,255,${lerp(0.20,0.48,k)})`;
+      ctx.fillRect(cx-hw*0.55,y,barW,barH);
+      ctx.fillRect(cx+hw*0.33,y,barW,barH);
+    }
+    for(let i=0;i<7;i++){
+      const k = 0.78;
+      const y = lerp(runwayFarY, runwayNearY, k);
+      const cx = lerp(farX, nearX, k);
+      const hw = lerp(farHalf, nearHalf, k);
+      const x = cx - hw*0.68 + i*(hw*0.22);
+      ctx.fillStyle='rgba(255,255,255,0.55)';
+      ctx.fillRect(x,y,hw*0.08,10);
+    }
+    for(let i=0;i<12;i++){
+      const k = i/11, y = lerp(runwayFarY+6, runwayNearY-10, k), cx = lerp(farX, nearX, k), hw = lerp(farHalf, nearHalf, k), size = lerp(1.4,3.4,k);
+      drawLight(cx-hw-4,y,size,'#f4f7ff',0.35+k*0.45);
+      drawLight(cx+hw+4,y,size,'#f4f7ff',0.35+k*0.45);
+    }
+    for(let i=0;i<11;i++){
+      const k = i/10, ax = lerp(W*0.96, farX, k), ay = lerp(H*0.63, runwayFarY+5, k), sequence = ((frame*0.035+i*0.16)%1), pulse = 0.38 + (1-sequence)*0.46;
+      drawLight(ax,ay,lerp(2.2,1.4,k),'#ffd766',pulse);
+      if(i > 1){ drawLight(ax,ay-8,1.2,'#ffd766',pulse*0.55); drawLight(ax,ay+8,1.2,'#ffd766',pulse*0.55); }
+    }
+    const tdX = lerp(farX, nearX, 0.2), tdY = lerp(runwayFarY, runwayNearY, 0.2);
+    const startX = W * 0.96, startY = H * 0.13, flareX = tdX + W * 0.02, flareY = tdY + H * 0.02;
+    const glidePathY = x => startY + ((x-startX)/(flareX-startX)) * (flareY-startY);
+    ctx.save();
+    ctx.globalAlpha=0.07; ctx.fillStyle='#00ff88';
+    ctx.beginPath(); ctx.moveTo(tdX,tdY); ctx.lineTo(startX,startY-H*0.08); ctx.lineTo(startX,startY+H*0.08); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha=0.12; ctx.fillStyle='#00d4ff';
+    ctx.beginPath(); ctx.moveTo(tdX,tdY); ctx.lineTo(W,H*0.28); ctx.lineTo(W,H*0.72); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle='#00ff88'; ctx.lineWidth=1.5; ctx.globalAlpha=0.82; ctx.setLineDash([11,8]);
+    ctx.beginPath(); ctx.moveTo(tdX,tdY); ctx.lineTo(startX,startY); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+    const lzX = farX, lzY = runwayFarY+2;
+    for(let w=1;w<=5;w++){
+      const wt = ((frame*0.018 + w*0.24) % 1), wr = wt * W*0.62;
+      ctx.strokeStyle=`rgba(0,212,255,${(1-wt)*0.36})`; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(lzX,lzY,wr,-Math.PI*0.45,Math.PI*0.45); ctx.stroke();
+    }
+    const gsAntX = farX - farHalf - 12, gsAntY = runwayFarY + 18;
+    for(let w=1;w<=4;w++){
+      const wt=((frame*0.014+w*0.28)%1), wr=wt*W*0.48;
+      ctx.strokeStyle=`rgba(0,255,136,${(1-wt)*0.34})`; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(gsAntX,gsAntY,wr,-Math.PI*0.85,-Math.PI*0.15); ctx.stroke();
+    }
+    const papiX = farX - farHalf - W*0.045;
+    const papiY = runwayFarY + H*0.115;
+    for(let i=0;i<4;i++){
+      const color = i < 2 ? '#f4f7ff' : '#ff3030';
+      drawLight(papiX+i*8,papiY,2.4,color,0.9);
+    }
+    ctx.fillStyle='rgba(255,190,70,0.72)';
+    ctx.font='bold 7px Orbitron,monospace';
+    ctx.textAlign='center';
+    ctx.fillText('PAPI',papiX+12,papiY+14);
+    const markers=[{name:'OM',x:W*0.82,color:'#ff6600',morse:'---'},{name:'MM',x:W*0.58,color:'#ffaa00',morse:'- .'},{name:'IM',x:W*0.37,color:'#ffffff',morse:'. .'}];
+    markers.forEach(m=>{
+      const my=groundY, pulse=(Math.sin(frame*0.08+m.x)*0.5+0.5);
+      ctx.fillStyle=m.color; ctx.globalAlpha=0.5+pulse*0.5; ctx.shadowBlur=20; ctx.shadowColor=m.color;
+      ctx.beginPath(); ctx.arc(m.x,my,5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; ctx.globalAlpha=1;
+      const beamH=42+34*pulse, beamGrad=ctx.createLinearGradient(0,my-beamH,0,my);
+      beamGrad.addColorStop(0,'rgba(0,0,0,0)'); beamGrad.addColorStop(1,m.color);
+      ctx.strokeStyle=beamGrad; ctx.globalAlpha=0.28+pulse*0.38; ctx.lineWidth=2.2;
+      ctx.beginPath(); ctx.moveTo(m.x,my); ctx.lineTo(m.x,my-beamH); ctx.stroke(); ctx.globalAlpha=1;
+      ctx.fillStyle=m.color; ctx.shadowBlur=6; ctx.shadowColor=m.color; ctx.font='bold 9px Orbitron,monospace'; ctx.textAlign='center';
+      ctx.fillText(m.name,m.x,my-55); ctx.font='8px monospace'; ctx.fillText(m.morse,m.x,my-44); ctx.shadowBlur=0;
+    });
+    approach += 0.00072; if(approach > 1) approach = 0.02;
+    const p = clamp(approach,0,1), guided = smoothStep(p), rawX = lerp(startX, flareX, guided), onPathY = glidePathY(rawX);
+    const localizerError = Math.sin(frame*0.026)*W*0.018*(1-p), glideError = jitter(3.2, H*0.018*(1-p)), flare = clamp((p-0.82)/0.18,0,1);
+    const planeX = rawX + localizerError, planeY = lerp(onPathY + glideError, flareY, flare*0.7), bank = clamp(localizerError / W * 1.6, -0.18, 0.18), planeScale = lerp(W<500?0.38:0.48, W<500?0.72:0.92, p);
+    for(let i=0;i<18;i++){
+      const tp = clamp(p-i*0.01,0,1), g = smoothStep(tp), tx = lerp(startX, flareX, g), ty = glidePathY(tx);
+      ctx.globalAlpha = (1-i/18) * 0.12; ctx.fillStyle = '#b9d1e8';
+      ctx.beginPath(); ctx.arc(tx+10,ty+3,lerp(0.8,2.4,tp),0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    if(p > 0.45){
+      const shadowY = lerp(planeY + H*0.20, flareY + H*0.03, flare);
+      const shadowAlpha = clamp((p-0.45)/0.55,0,1) * 0.24;
+      ctx.save();
+      ctx.globalAlpha = shadowAlpha;
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.ellipse(planeX-10,shadowY,lerp(16,44,p),lerp(3,8,p),0,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+    if(flare > 0.74){
+      for(let i=0;i<7;i++){
+        const puff = (frame*0.018+i*0.14)%1;
+        ctx.globalAlpha = (1-puff)*0.18*flare;
+        ctx.fillStyle = '#dce6ee';
+        ctx.beginPath();
+        ctx.ellipse(planeX-28-i*5, flareY+12-i*0.7, 4+puff*12, 2+puff*5, 0, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    drawAircraft(planeX,planeY,planeScale,bank,true);
+    const alt=Math.max(35,Math.round(2800*(1-p) + 35*flare)), spd=Math.round(152 - p*17), vs=Math.round(-720 + flare*560 + jitter(1.3,18));
+    ctx.fillStyle='rgba(0,0,0,0.68)'; ctx.beginPath(); ctx.roundRect(W*0.02,H*0.02,138,76,8); ctx.fill();
+    ctx.strokeStyle='rgba(0,212,255,0.4)'; ctx.lineWidth=1; ctx.beginPath(); ctx.roundRect(W*0.02,H*0.02,138,76,8); ctx.stroke();
+    ctx.fillStyle='#00d4ff'; ctx.font='bold 8px Orbitron,monospace'; ctx.textAlign='left'; ctx.fillText('ALT: '+alt+' ft',W*0.02+10,H*0.02+18);
+    ctx.fillStyle='#00ff88'; ctx.fillText('IAS: '+spd+' kt',W*0.02+10,H*0.02+35);
+    ctx.fillStyle='#ffd700'; ctx.fillText('VS: '+vs+' fpm',W*0.02+10,H*0.02+52);
+    ctx.fillStyle=flare>0.75?'#00ff88':'#8ab4d4'; ctx.fillText(flare>0.75?'FLARE':'ILS APP',W*0.02+10,H*0.02+69);
+    const cdiX=W*0.73, cdiY=H*0.17, cdiR=W<500?30:42, deviation=clamp(localizerError/(W*0.08),-0.9,0.9), gsdev=clamp(glideError/(H*0.08),-0.9,0.9);
+    ctx.save(); ctx.globalAlpha=0.92; ctx.fillStyle='rgba(5,10,20,0.85)'; ctx.beginPath(); ctx.arc(cdiX,cdiY,cdiR+8,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(0,212,255,0.6)'; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(cdiX,cdiY,cdiR+8,0,Math.PI*2); ctx.stroke();
+    for(let i=0;i<8;i++){ const angle=i*Math.PI/4, ix1=(cdiR+2)*Math.cos(angle), iy1=(cdiR+2)*Math.sin(angle), ix2=(cdiR+7)*Math.cos(angle), iy2=(cdiR+7)*Math.sin(angle); ctx.strokeStyle='rgba(0,212,255,0.4)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(cdiX+ix1,cdiY+iy1); ctx.lineTo(cdiX+ix2,cdiY+iy2); ctx.stroke(); }
+    for(let d=-2;d<=2;d++){ if(d===0)continue; ctx.fillStyle='rgba(255,255,255,0.2)'; ctx.beginPath(); ctx.arc(cdiX+d*(cdiR*0.45),cdiY,3,0,Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(cdiX,cdiY+d*(cdiR*0.45),3,0,Math.PI*2); ctx.fill(); }
+    ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(cdiX-cdiR,cdiY); ctx.lineTo(cdiX+cdiR,cdiY); ctx.stroke(); ctx.beginPath(); ctx.moveTo(cdiX,cdiY-cdiR); ctx.lineTo(cdiX,cdiY+cdiR); ctx.stroke();
+    ctx.strokeStyle='#00d4ff'; ctx.lineWidth=3; ctx.shadowBlur=10; ctx.shadowColor='#00d4ff'; const nx=cdiX+deviation*cdiR*0.85; ctx.beginPath(); ctx.moveTo(nx,cdiY-cdiR+6); ctx.lineTo(nx,cdiY+cdiR-6); ctx.stroke();
+    ctx.fillStyle='#00d4ff'; ctx.beginPath(); ctx.moveTo(nx,cdiY-cdiR+6); ctx.lineTo(nx-4,cdiY-cdiR+14); ctx.lineTo(nx+4,cdiY-cdiR+14); ctx.fill(); ctx.beginPath(); ctx.moveTo(nx,cdiY+cdiR-6); ctx.lineTo(nx-4,cdiY+cdiR-14); ctx.lineTo(nx+4,cdiY+cdiR-14); ctx.fill();
+    ctx.strokeStyle='#00ff88'; ctx.shadowColor='#00ff88'; const ny=cdiY+gsdev*cdiR*0.85; ctx.beginPath(); ctx.moveTo(cdiX-cdiR+6,ny); ctx.lineTo(cdiX+cdiR-6,ny); ctx.stroke(); ctx.fillStyle='#00ff88'; ctx.beginPath(); ctx.moveTo(cdiX-cdiR+6,ny); ctx.lineTo(cdiX-cdiR+14,ny-4); ctx.lineTo(cdiX-cdiR+14,ny+4); ctx.fill();
+    ctx.shadowBlur=0; ctx.fillStyle='rgba(0,212,255,0.9)'; ctx.font='bold 8px Orbitron,monospace'; ctx.textAlign='center'; ctx.fillText('CDI/HSI',cdiX,cdiY+cdiR+20); ctx.restore();
+    ctx.font='bold 9px Orbitron,monospace'; ctx.textAlign='left'; ctx.fillStyle='rgba(0,255,136,0.85)'; ctx.shadowBlur=4; ctx.shadowColor='#00ff88'; ctx.fillText('3 DEG GLIDE SLOPE',W*0.42,H*0.33);
+    ctx.fillStyle='rgba(0,212,255,0.8)'; ctx.shadowColor='#00d4ff'; ctx.fillText('LOCALIZER CENTERLINE',W*0.56,lzY-18);
+    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.shadowBlur=0; ctx.fillText('RUNWAY 27',nearX-nearHalf*0.55,runwayNearY-10);
+    ctx.fillStyle='rgba(255,200,80,0.7)'; ctx.fillText('ALSF-2',W*0.76,H*0.62);
+    const vignette = ctx.createRadialGradient(W*0.46,H*0.48,W*0.18,W*0.46,H*0.48,W*0.78);
+    vignette.addColorStop(0,'rgba(0,0,0,0)');
+    vignette.addColorStop(1,'rgba(0,0,0,0.42)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0,0,W,H);
+    frame++;
+    requestAnimationFrame(drawScene);
+  }
+  drawScene();
+})();
+
+// ============================================================
+// ORIGINAL STYLE ILS ANIMATION RESTORE
+// ============================================================
+(function(){
+  const canvas = null; // disabled: real plane landing animation below is active
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize(){
+    W = canvas.width = canvas.offsetWidth || 900;
+    H = canvas.height = canvas.offsetHeight || 320;
+  }
+  resize(); window.addEventListener('resize', resize);
+
+  let t = 0;
+  let progress = 0;
+
+  function pulse(speed, offset){ return (Math.sin(t*speed + offset) + 1) / 2; }
+  function easeInOut(x){ return x < 0.5 ? 2*x*x : 1 - Math.pow(-2*x+2,2)/2; }
+
+  function drawPlane(x, y, size, angle){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = '#ffd700';
+    ctx.font = `${size}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffd700';
+    ctx.fillText('\u2708', 0, 0);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  function drawILS(){
+    ctx.clearRect(0,0,W,H);
+
+    const sky = ctx.createLinearGradient(0,0,0,H*0.78);
+    sky.addColorStop(0,'#010810');
+    sky.addColorStop(0.55,'#03162d');
+    sky.addColorStop(1,'#061c35');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0,0,W,H*0.78);
+
+    for(let i=0;i<55;i++){
+      const x = (i*137.5) % W;
+      const y = (i*89.7) % (H*0.52);
+      ctx.globalAlpha = 0.25 + pulse(0.035,i)*0.55;
+      ctx.fillStyle = i%6===0 ? '#aaddff' : '#ffffff';
+      ctx.beginPath();
+      ctx.arc(x,y,i%8===0?1.4:0.8,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    const haze = ctx.createLinearGradient(0,H*0.58,0,H*0.78);
+    haze.addColorStop(0,'rgba(0,0,0,0)');
+    haze.addColorStop(1,'rgba(70,120,150,0.22)');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0,H*0.58,W,H*0.2);
+
+    const ground = ctx.createLinearGradient(0,H*0.78,0,H);
+    ground.addColorStop(0,'#0a1e0f');
+    ground.addColorStop(1,'#050e07');
+    ctx.fillStyle = ground;
+    ctx.fillRect(0,H*0.78,W,H*0.22);
+
+    const rwyX = W*0.06, rwyW = W*0.3, rwyY = H*0.78, rwyH = H*0.09;
+    const rwySurf = ctx.createLinearGradient(rwyX,0,rwyX+rwyW,0);
+    rwySurf.addColorStop(0,'#181824');
+    rwySurf.addColorStop(0.5,'#27273a');
+    rwySurf.addColorStop(1,'#181824');
+    ctx.fillStyle = rwySurf;
+    ctx.fillRect(rwyX,rwyY,rwyW,rwyH);
+    ctx.strokeStyle='rgba(255,255,255,0.22)';
+    ctx.lineWidth=1;
+    ctx.strokeRect(rwyX,rwyY,rwyW,rwyH);
+
+    ctx.strokeStyle='rgba(255,255,255,0.72)';
+    ctx.lineWidth=2;
+    ctx.setLineDash([18,12]);
+    ctx.beginPath();
+    ctx.moveTo(rwyX+rwyW*0.08,rwyY+rwyH/2);
+    ctx.lineTo(rwyX+rwyW*0.92,rwyY+rwyH/2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    for(let i=0;i<8;i++){
+      ctx.fillStyle = `rgba(255,255,255,${0.45+i*0.04})`;
+      ctx.fillRect(rwyX+rwyW*0.86+i*4,rwyY+5,2.5,rwyH-10);
+    }
+
+    for(let i=0;i<10;i++){
+      const lx = rwyX + (i/9)*rwyW;
+      const a = 0.45 + pulse(0.08,i*0.6)*0.45;
+      ctx.fillStyle = `rgba(255,210,90,${a})`;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#ffcc00';
+      ctx.beginPath(); ctx.arc(lx,rwyY-3,3,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(lx,rwyY+rwyH+3,3,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    const tdX = rwyX+rwyW*0.12, tdY = rwyY+rwyH/2;
+    const startX = W*0.98, startY = H*0.08;
+    const lzX = rwyX+rwyW, lzY = rwyY+rwyH/2;
+
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = '#00ff88';
+    ctx.beginPath();
+    ctx.moveTo(tdX,tdY);
+    ctx.lineTo(startX,startY-H*0.1);
+    ctx.lineTo(startX,startY+H*0.1);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = '#00d4ff';
+    ctx.beginPath();
+    ctx.moveTo(tdX,rwyY-8);
+    ctx.lineTo(W,H*0.2);
+    ctx.lineTo(W,H*0.75);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.strokeStyle='#00ff88';
+    ctx.lineWidth=1.5;
+    ctx.globalAlpha=0.85;
+    ctx.setLineDash([12,8]);
+    ctx.beginPath();
+    ctx.moveTo(tdX,tdY);
+    ctx.lineTo(startX,startY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha=1;
+
+    for(let w=1;w<=5;w++){
+      const wt = ((t*0.025 + w*0.3) % 1);
+      const wr = wt * W*0.55;
+      ctx.strokeStyle = `rgba(0,212,255,${(1-wt)*0.42})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(lzX,lzY,wr,-Math.PI*0.45,Math.PI*0.45);
+      ctx.stroke();
+    }
+
+    const markers=[
+      {name:'OM',x:W*0.86,color:'#ff6600',morse:'---'},
+      {name:'MM',x:W*0.56,color:'#ffaa00',morse:'- .'},
+      {name:'IM',x:W*0.30,color:'#ffffff',morse:'. .'}
+    ];
+    markers.forEach(m=>{
+      const my=H*0.78;
+      const p=pulse(0.1,m.x);
+      ctx.fillStyle=m.color;
+      ctx.globalAlpha=0.45+p*0.55;
+      ctx.shadowBlur=18;
+      ctx.shadowColor=m.color;
+      ctx.beginPath(); ctx.arc(m.x,my,5,0,Math.PI*2); ctx.fill();
+      ctx.shadowBlur=0;
+      const beamH=45*p;
+      const beamGrad=ctx.createLinearGradient(0,my-beamH,0,my);
+      beamGrad.addColorStop(0,'rgba(0,0,0,0)');
+      beamGrad.addColorStop(1,m.color);
+      ctx.strokeStyle=beamGrad;
+      ctx.lineWidth=2.4;
+      ctx.beginPath(); ctx.moveTo(m.x,my); ctx.lineTo(m.x,my-beamH); ctx.stroke();
+      ctx.globalAlpha=1;
+      ctx.fillStyle=m.color;
+      ctx.font='bold 9px Orbitron,monospace';
+      ctx.textAlign='center';
+      ctx.fillText(m.name,m.x,my-55);
+      ctx.font='8px monospace';
+      ctx.fillText(m.morse,m.x,my-44);
+    });
+
+    progress = (progress + 0.0013) % 1;
+    const p = easeInOut(progress);
+    const windX = Math.sin(t*0.045)*2*(1-p);
+    const windY = Math.cos(t*0.052)*2.8*(1-p);
+    const planeX = startX - p*(startX-tdX) + windX;
+    const planeY = startY - p*(startY-tdY) + windY;
+    const angle = Math.atan2(tdY-startY, tdX-startX);
+
+    for(let i=0;i<24;i++){
+      const tp = Math.max(0,p-i*0.01);
+      const tx = startX - tp*(startX-tdX);
+      const ty = startY - tp*(startY-tdY);
+      ctx.globalAlpha = (1-i/24)*0.12;
+      ctx.fillStyle = '#8ab4d4';
+      ctx.beginPath();
+      ctx.arc(tx+10,ty+5,1.4,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    drawPlane(planeX,planeY,W<500?18:26,angle);
+
+    const alt=Math.round((1-p)*3000);
+    const spd=Math.round(160+p*18);
+    ctx.fillStyle='rgba(0,0,0,0.65)';
+    ctx.beginPath();
+    ctx.roundRect(W*0.02,H*0.02,120,60,8);
+    ctx.fill();
+    ctx.strokeStyle='rgba(0,212,255,0.4)';
+    ctx.stroke();
+    ctx.fillStyle='#00d4ff';
+    ctx.font='bold 8px Orbitron,monospace';
+    ctx.textAlign='left';
+    ctx.fillText('ALT: '+alt+' ft',W*0.02+10,H*0.02+18);
+    ctx.fillStyle='#00ff88';
+    ctx.fillText('SPD: '+spd+' kts',W*0.02+10,H*0.02+35);
+    ctx.fillStyle='#ffd700';
+    ctx.fillText('GS: '+Math.round(p*100)+'%',W*0.02+10,H*0.02+52);
+
+    const cdiX=W*0.73, cdiY=H*0.17, cdiR=W<500?30:42;
+    const deviation=Math.sin(t*0.04)*0.26*(1-p);
+    const gsdev=Math.cos(t*0.035)*0.22*(1-p);
+    ctx.save();
+    ctx.fillStyle='rgba(5,10,20,0.85)';
+    ctx.beginPath(); ctx.arc(cdiX,cdiY,cdiR+8,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(0,212,255,0.6)';
+    ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(cdiX,cdiY,cdiR+8,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.22)';
+    ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cdiX-cdiR,cdiY); ctx.lineTo(cdiX+cdiR,cdiY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cdiX,cdiY-cdiR); ctx.lineTo(cdiX,cdiY+cdiR); ctx.stroke();
+    for(let d=-2;d<=2;d++){
+      if(d===0) continue;
+      ctx.fillStyle='rgba(255,255,255,0.22)';
+      ctx.beginPath(); ctx.arc(cdiX+d*(cdiR*0.45),cdiY,3,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cdiX,cdiY+d*(cdiR*0.45),3,0,Math.PI*2); ctx.fill();
+    }
+    ctx.shadowBlur=10;
+    ctx.shadowColor='#00d4ff';
+    ctx.strokeStyle='#00d4ff';
+    ctx.lineWidth=3;
+    const nx=cdiX+deviation*cdiR;
+    ctx.beginPath(); ctx.moveTo(nx,cdiY-cdiR+6); ctx.lineTo(nx,cdiY+cdiR-6); ctx.stroke();
+    ctx.shadowColor='#00ff88';
+    ctx.strokeStyle='#00ff88';
+    const ny=cdiY+gsdev*cdiR;
+    ctx.beginPath(); ctx.moveTo(cdiX-cdiR+6,ny); ctx.lineTo(cdiX+cdiR-6,ny); ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(0,212,255,0.9)';
+    ctx.font='bold 8px Orbitron,monospace';
+    ctx.textAlign='center';
+    ctx.fillText('CDI/HSI',cdiX,cdiY+cdiR+20);
+    ctx.restore();
+
+    ctx.font='bold 9px Orbitron,monospace';
+    ctx.textAlign='left';
+    ctx.fillStyle='rgba(0,255,136,0.85)';
+    ctx.fillText('GLIDE SLOPE',rwyX+rwyW*0.35,H*0.32);
+    ctx.fillStyle='rgba(0,212,255,0.82)';
+    ctx.fillText('LOCALIZER',rwyX+rwyW*1.05,lzY-15);
+    ctx.fillStyle='rgba(255,255,255,0.55)';
+    ctx.fillText('RUNWAY 27',rwyX+rwyW*0.25,rwyY+rwyH+16);
+
+    t++;
+    requestAnimationFrame(drawILS);
+  }
+  drawILS();
+})();
+
+
+// ============================================================
+// REAL PLANE LANDING ILS ANIMATION
 // ============================================================
 (function(){
   const canvas = document.getElementById('ilsCanvas');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  let W, H;
-  function resize(){ W = canvas.width = canvas.offsetWidth; H = canvas.height = 340; }
+  let W, H, DPR;
+
+  function resize(){
+    DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
+    W = canvas.offsetWidth || 900;
+    H = canvas.offsetHeight || 320;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
   resize(); window.addEventListener('resize', resize);
 
-  let t = 0;
-  let progress = 0;
-  let cloudOffset = 0;
+  let frame = 0;
+  let progress = 0.02;
 
-  function easeInOut(x){ return x < 0.5 ? 2*x*x : 1-(Math.pow(-2*x+2,2)/2); }
+  function lerp(a,b,t){ return a + (b-a)*t; }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function smooth(t){ return t*t*(3-2*t); }
 
-  // Turbulence for realism
-  function turbulence(t, freq, amp){ return Math.sin(t * freq) * amp + Math.cos(t * freq * 1.7) * amp * 0.5; }
+  function glowDot(x,y,r,color,alpha){
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowBlur = r*4;
+    ctx.shadowColor = color;
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawAirliner(x,y,scale,pitch,phase,rollP){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(pitch);
+    ctx.scale(scale,scale);
+    const spoiler = clamp((rollP-0.08)/0.22,0,1);
+    const noseSettle = clamp((rollP-0.18)/0.26,0,1);
+
+    const metal = ctx.createLinearGradient(-52,-8,42,8);
+    metal.addColorStop(0,'#f7fbff');
+    metal.addColorStop(0.45,'#c8d6e4');
+    metal.addColorStop(1,'#8498ad');
+
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = 'rgba(255,244,190,0.55)';
+    ctx.fillStyle = metal;
+    ctx.strokeStyle = 'rgba(9,18,31,0.8)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-55,0);
+    ctx.quadraticCurveTo(-46,-10,-8,-10);
+    ctx.lineTo(31,-7);
+    ctx.quadraticCurveTo(43,-5,48,0);
+    ctx.quadraticCurveTo(42,6,29,7);
+    ctx.lineTo(-8,10);
+    ctx.quadraticCurveTo(-45,10,-55,0);
+    ctx.fill(); ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#182233';
+    for(let i=0;i<9;i++){
+      ctx.beginPath();
+      ctx.ellipse(-36+i*7,-4,1.5,1.1,0,0,Math.PI*2);
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(40,60,82,0.9)';
+    ctx.fillRect(-50,-2,8,2);
+
+    ctx.fillStyle = '#aebdcc';
+    ctx.beginPath();
+    ctx.moveTo(-2,2);
+    ctx.lineTo(24,30);
+    ctx.lineTo(2,25);
+    ctx.lineTo(-18,5);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#dce6ef';
+    ctx.beginPath();
+    ctx.moveTo(2,18);
+    ctx.lineTo(19,28);
+    ctx.lineTo(11,31);
+    ctx.lineTo(-5,21);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    if(spoiler > 0){
+      ctx.save();
+      ctx.globalAlpha = spoiler;
+      ctx.fillStyle = '#eef5fb';
+      ctx.beginPath();
+      ctx.moveTo(3,11);
+      ctx.lineTo(17,18);
+      ctx.lineTo(20,8);
+      ctx.lineTo(7,3);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
+    ctx.fillStyle = '#8da0b3';
+    ctx.beginPath();
+    ctx.moveTo(31,-6);
+    ctx.lineTo(49,-24);
+    ctx.lineTo(43,-2);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(34,5);
+    ctx.lineTo(49,15);
+    ctx.lineTo(39,8);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#6d7f90';
+    ctx.beginPath(); ctx.ellipse(6,22,6,3.8,0,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+    ctx.strokeStyle = '#263445';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-27,8); ctx.lineTo(-31,24-2*noseSettle);
+    ctx.moveTo(15,8); ctx.lineTo(12,23);
+    ctx.stroke();
+    ctx.fillStyle = '#111820';
+    const wheelSpin = phase * Math.PI * 18;
+    [{x:-31,y:25-2*noseSettle},{x:12,y:24}].forEach(wheel=>{
+      ctx.beginPath(); ctx.arc(wheel.x,wheel.y,4.2,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#c9d4df';
+      ctx.beginPath();
+      ctx.moveTo(wheel.x,wheel.y);
+      ctx.lineTo(wheel.x+Math.cos(wheelSpin)*4,wheel.y+Math.sin(wheelSpin)*4);
+      ctx.stroke();
+    });
+
+    glowDot(-55,0,2.5,'#fff5c8',0.95);
+    glowDot(-34,29,2.1,'#ffffff',Math.sin(frame*0.36)>0.7?1:0.2);
+    glowDot(23,30,2.2,'#33ff88',0.75);
+    glowDot(22,-2,2.2,'#ff3333',0.75);
+    ctx.restore();
+  }
 
   function drawScene(){
     ctx.clearRect(0,0,W,H);
 
-    // Sky gradient - more realistic
     const sky = ctx.createLinearGradient(0,0,0,H*0.78);
-    sky.addColorStop(0,'#010810');
-    sky.addColorStop(0.4,'#020d20');
-    sky.addColorStop(1,'#051a35');
-    ctx.fillStyle = sky; ctx.fillRect(0,0,W,H*0.78);
+    sky.addColorStop(0,'#010713');
+    sky.addColorStop(0.55,'#061a34');
+    sky.addColorStop(1,'#0b2a45');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0,0,W,H*0.78);
 
-    // Atmospheric haze near horizon
-    const haze = ctx.createLinearGradient(0,H*0.6,0,H*0.78);
-    haze.addColorStop(0,'rgba(0,0,0,0)');
-    haze.addColorStop(1,'rgba(20,50,80,0.4)');
-    ctx.fillStyle = haze; ctx.fillRect(0,H*0.6,W,H*0.18);
-
-    // Stars with twinkling
     for(let i=0;i<60;i++){
-      const sx = (i*137.508)%W;
-      const sy = (i*93.7)%(H*0.55);
-      const twinkle = (Math.sin(t*0.03+i*2.1)*0.5+0.5)*0.9;
-      ctx.globalAlpha = twinkle * 0.8;
-      ctx.fillStyle = i%5===0 ? '#aaddff' : '#ffffff';
-      ctx.beginPath(); ctx.arc(sx,sy,i%7===0?1.5:0.8,0,Math.PI*2); ctx.fill();
+      const sx=(i*137.5)%W, sy=(i*73.3)%(H*0.5);
+      ctx.globalAlpha = 0.22 + (Math.sin(frame*0.025+i)*0.5+0.5)*0.45;
+      ctx.fillStyle = i%7===0 ? '#a9d8ff' : '#ffffff';
+      ctx.beginPath(); ctx.arc(sx,sy,i%9===0?1.3:0.75,0,Math.PI*2); ctx.fill();
     }
     ctx.globalAlpha = 1;
 
-    // Moving clouds (subtle)
-    cloudOffset = (cloudOffset + 0.15) % W;
-    ctx.globalAlpha = 0.06;
-    ctx.fillStyle = '#8ab4d4';
-    for(let c=0;c<3;c++){
-      const cx = ((cloudOffset + c*(W/3)) % (W+200)) - 100;
-      const cy = H*0.35 + c*30;
-      const cr = 60 + c*20;
-      ctx.beginPath(); ctx.ellipse(cx,cy,cr,cr*0.4,0,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.ellipse(cx+50,cy-10,cr*0.7,cr*0.3,0,0,Math.PI*2); ctx.fill();
-    }
-    ctx.globalAlpha = 1;
+    const haze = ctx.createLinearGradient(0,H*0.55,0,H*0.78);
+    haze.addColorStop(0,'rgba(0,0,0,0)');
+    haze.addColorStop(1,'rgba(115,165,190,0.24)');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0,H*0.55,W,H*0.23);
 
-    // Ground
-    const gnd = ctx.createLinearGradient(0,H*0.78,0,H);
-    gnd.addColorStop(0,'#0a1e0f'); gnd.addColorStop(1,'#050e07');
-    ctx.fillStyle = gnd; ctx.fillRect(0,H*0.78,W,H*0.22);
+    const ground = ctx.createLinearGradient(0,H*0.78,0,H);
+    ground.addColorStop(0,'#0c2313');
+    ground.addColorStop(1,'#040908');
+    ctx.fillStyle = ground;
+    ctx.fillRect(0,H*0.78,W,H*0.22);
 
-    // Ground texture lines
-    ctx.strokeStyle = 'rgba(0,80,20,0.15)'; ctx.lineWidth = 1;
-    for(let g=0;g<5;g++){
-      ctx.beginPath(); ctx.moveTo(0,H*0.78+g*H*0.04); ctx.lineTo(W,H*0.78+g*H*0.04); ctx.stroke();
-    }
+    const rwyX=W*0.06, rwyY=H*0.78, rwyW=W*0.42, rwyH=H*0.1;
+    const runway = ctx.createLinearGradient(rwyX,rwyY,rwyX,rwyY+rwyH);
+    runway.addColorStop(0,'#343847');
+    runway.addColorStop(1,'#151923');
+    ctx.fillStyle = runway;
+    ctx.fillRect(rwyX,rwyY,rwyW,rwyH);
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+    ctx.strokeRect(rwyX,rwyY,rwyW,rwyH);
 
-    // Runway
-    const rwyX = W*0.06, rwyW = W*0.3, rwyY = H*0.78, rwyH = H*0.09;
-    // Runway surface
-    const rwySurf = ctx.createLinearGradient(rwyX,0,rwyX+rwyW,0);
-    rwySurf.addColorStop(0,'#1a1a28'); rwySurf.addColorStop(0.5,'#222235'); rwySurf.addColorStop(1,'#1a1a28');
-    ctx.fillStyle = rwySurf; ctx.fillRect(rwyX, rwyY, rwyW, rwyH);
-    // Runway border
-    ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
-    ctx.strokeRect(rwyX, rwyY, rwyW, rwyH);
-    // Center line dashes
-    ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=2; ctx.setLineDash([18,12]);
-    ctx.beginPath(); ctx.moveTo(rwyX+rwyW*0.08, rwyY+rwyH/2); ctx.lineTo(rwyX+rwyW*0.92, rwyY+rwyH/2); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.72)';
+    ctx.lineWidth=2;
+    ctx.setLineDash([20,14]);
+    ctx.beginPath();
+    ctx.moveTo(rwyX+rwyW*0.08,rwyY+rwyH/2);
+    ctx.lineTo(rwyX+rwyW*0.92,rwyY+rwyH/2);
+    ctx.stroke();
     ctx.setLineDash([]);
-    // Threshold markings
+
     for(let i=0;i<8;i++){
-      ctx.fillStyle = `rgba(255,255,255,${0.5+i*0.05})`;
-      ctx.fillRect(rwyX + rwyW*0.87 + i*4, rwyY+5, 2.5, rwyH-10);
+      ctx.fillStyle='rgba(255,255,255,0.55)';
+      ctx.fillRect(rwyX+rwyW*0.82+i*4,rwyY+5,2.4,rwyH-10);
     }
-    // Touchdown zone markings
-    for(let i=0;i<3;i++){
-      ctx.fillStyle='rgba(255,255,255,0.25)';
-      ctx.fillRect(rwyX + rwyW*0.2 + i*rwyW*0.12, rwyY+4, rwyW*0.08, rwyH*0.35);
-      ctx.fillRect(rwyX + rwyW*0.2 + i*rwyW*0.12, rwyY+rwyH-rwyH*0.35-4, rwyW*0.08, rwyH*0.35);
+    for(let i=0;i<6;i++){
+      ctx.strokeStyle=`rgba(0,0,0,${0.16+i*0.025})`;
+      ctx.lineWidth=2.4;
+      ctx.beginPath();
+      ctx.moveTo(rwyX+rwyW*(0.22+i*0.035),rwyY+rwyH*0.33);
+      ctx.lineTo(rwyX+rwyW*(0.31+i*0.035),rwyY+rwyH*0.33);
+      ctx.moveTo(rwyX+rwyW*(0.22+i*0.035),rwyY+rwyH*0.66);
+      ctx.lineTo(rwyX+rwyW*(0.31+i*0.035),rwyY+rwyH*0.66);
+      ctx.stroke();
     }
-    // Runway number
-    ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='bold 10px Orbitron,monospace'; ctx.textAlign='center';
-    ctx.fillText('27', rwyX+rwyW*0.92, rwyY+rwyH/2+4);
-
-    // Runway edge lights
-    for(let i=0;i<10;i++){
-      const lx = rwyX + (i/9)*rwyW;
-      const pulse = (Math.sin(t*0.08+i*0.6)+1)/2;
-      // Top edge lights
-      ctx.fillStyle=`rgba(255,200,80,${0.4+pulse*0.6})`; ctx.shadowBlur=8; ctx.shadowColor='#ffcc00';
-      ctx.beginPath(); ctx.arc(lx,rwyY-3,3,0,Math.PI*2); ctx.fill();
-      // Bottom edge
-      ctx.beginPath(); ctx.arc(lx,rwyY+rwyH+3,3,0,Math.PI*2); ctx.fill();
-      ctx.shadowBlur=0;
+    for(let i=0;i<11;i++){
+      const lx=rwyX+(i/10)*rwyW;
+      const a=0.45+(Math.sin(frame*0.08+i)*0.5+0.5)*0.45;
+      glowDot(lx,rwyY-3,2.8,'#ffd86c',a);
+      glowDot(lx,rwyY+rwyH+3,2.8,'#ffd86c',a);
     }
-
-    // Approach lighting (ALSF - strip of lights before threshold)
-    const alsf = ctx.createLinearGradient(rwyX+rwyW, 0, W*0.98, 0);
-    for(let a=0;a<8;a++){
-      const ax = rwyX+rwyW + a*(W*0.98-rwyX-rwyW)/7;
-      const apulse = (Math.sin(t*0.1+a*0.4)+1)/2;
-      ctx.fillStyle=`rgba(255,220,100,${0.2+apulse*0.4})`; ctx.shadowBlur=6; ctx.shadowColor='#ffdd66';
-      ctx.beginPath(); ctx.arc(ax, rwyY+rwyH/2, 2.5, 0, Math.PI*2); ctx.fill();
-      ctx.shadowBlur=0;
+    for(let i=0;i<9;i++){
+      const k=i/8;
+      const lx=lerp(rwyX+rwyW+8,W*0.95,k);
+      const ly=rwyY+rwyH/2 + Math.sin(k*Math.PI)*H*0.03;
+      const seq=(frame*0.025+i*0.12)%1;
+      glowDot(lx,ly,2.2,'#ffe08a',0.28+(1-seq)*0.45);
     }
 
-    const tdX = rwyX + rwyW*0.12, tdY = rwyY + rwyH/2;
-    const gsStartX = W*0.98, gsStartY = H*0.08;
+    const touchX=rwyX+rwyW*0.34;
+    const rollX=rwyX+rwyW*0.08;
+    const startX=W*0.94;
+    const startY=H*0.18;
+    const scale=W<520?0.50:0.72;
+    const bodyTouchY=rwyY-28*scale;
 
-    // Glide slope beam (volumetric look)
     ctx.save();
-    // Outer glow
-    ctx.globalAlpha=0.05; ctx.fillStyle='#00ff88';
-    ctx.beginPath(); ctx.moveTo(tdX,tdY);
-    ctx.lineTo(gsStartX, gsStartY - H*0.1); ctx.lineTo(gsStartX, gsStartY + H*0.1); ctx.closePath(); ctx.fill();
-    // Inner beam
-    ctx.globalAlpha=0.12; ctx.fillStyle='#00ff88';
-    ctx.beginPath(); ctx.moveTo(tdX,tdY);
-    ctx.lineTo(gsStartX, gsStartY - H*0.05); ctx.lineTo(gsStartX, gsStartY + H*0.05); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha=0.1;
+    ctx.fillStyle='#00ff88';
+    ctx.beginPath();
+    ctx.moveTo(touchX,rwyY+rwyH*0.35);
+    ctx.lineTo(startX,startY-H*0.08);
+    ctx.lineTo(startX,startY+H*0.08);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
-    // GS center line
-    ctx.strokeStyle='#00ff88'; ctx.lineWidth=1.5; ctx.globalAlpha=0.8; ctx.setLineDash([12,8]);
-    ctx.beginPath(); ctx.moveTo(tdX,tdY); ctx.lineTo(gsStartX,gsStartY); ctx.stroke();
-    ctx.setLineDash([]); ctx.globalAlpha=1;
-
-    // Localizer beam
-    ctx.save();
-    ctx.globalAlpha=0.06; ctx.fillStyle='#00d4ff';
-    ctx.beginPath(); ctx.moveTo(tdX, rwyY-10); ctx.lineTo(W, H*0.2); ctx.lineTo(W, H*0.75); ctx.closePath(); ctx.fill();
-    ctx.restore();
-
-    // Localizer radio waves
-    const lzX = rwyX+rwyW, lzY = rwyY+rwyH/2;
-    for(let w=1;w<=5;w++){
-      const wt = ((t*0.025 + w*0.3) % 1);
-      const wr = wt * W*0.55;
-      ctx.strokeStyle=`rgba(0,212,255,${(1-wt)*0.45})`;
-      ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.arc(lzX,lzY,wr,-Math.PI*0.45,Math.PI*0.45); ctx.stroke();
-    }
-
-    // Glide slope antenna radio waves
-    const gsAntX=rwyX+rwyW*0.25, gsAntY=rwyY;
-    for(let w=1;w<=4;w++){
-      const wt=((t*0.02+w*0.3)%1);
-      const wr=wt*W*0.45;
-      ctx.strokeStyle=`rgba(0,255,136,${(1-wt)*0.4})`;
-      ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.arc(gsAntX,gsAntY,wr,-Math.PI*0.85,-Math.PI*0.15); ctx.stroke();
-    }
-
-    // Marker beacons with labels and vertical pulses
-    const markers=[
-      {name:'OM',x:W*0.86,color:'#ff6600',morse:'— — —'},
-      {name:'MM',x:W*0.56,color:'#ffaa00',morse:'— •'},
-      {name:'IM',x:W*0.3, color:'#ffffff',morse:'• •'}
-    ];
-    markers.forEach(m=>{
-      const my=H*0.78;
-      const pulse=(Math.sin(t*0.1+m.x)*0.5+0.5);
-      // Beacon body
-      ctx.fillStyle=m.color; ctx.globalAlpha=0.5+pulse*0.5;
-      ctx.shadowBlur=20; ctx.shadowColor=m.color;
-      ctx.beginPath(); ctx.arc(m.x,my,5,0,Math.PI*2); ctx.fill();
-      ctx.shadowBlur=0; ctx.globalAlpha=1;
-      // Vertical beam
-      const beamH=50*pulse;
-      const beamGrad=ctx.createLinearGradient(0,my-beamH,0,my);
-      beamGrad.addColorStop(0,'rgba(0,0,0,0)'); beamGrad.addColorStop(1,m.color);
-      ctx.strokeStyle=beamGrad; ctx.globalAlpha=0.35+pulse*0.4; ctx.lineWidth=2.5;
-      ctx.beginPath(); ctx.moveTo(m.x,my); ctx.lineTo(m.x,my-beamH); ctx.stroke();
-      ctx.globalAlpha=1;
-      // Label
-      ctx.fillStyle=m.color; ctx.shadowBlur=6; ctx.shadowColor=m.color;
-      ctx.font='bold 9px Orbitron,monospace'; ctx.textAlign='center';
-      ctx.fillText(m.name,m.x,my-55);
-      ctx.font='8px monospace'; ctx.fillText(m.morse,m.x,my-44);
-      ctx.shadowBlur=0;
-    });
-
-    // Aircraft with turbulence
-    progress=(progress+0.0012)%1;
-    const p=easeInOut(progress>0.95?1-(progress-0.95)/0.05:progress/0.95);
-    const turbX=turbulence(t,0.05,2*(1-p));
-    const turbY=turbulence(t,0.07,3*(1-p));
-    const planeX=gsStartX-p*(gsStartX-tdX)+turbX;
-    const planeY=gsStartY-p*(gsStartY-tdY)+turbY;
-
-    // Engine trails
-    const trailLen=Math.min(30,Math.floor(p*80));
-    for(let i=0;i<trailLen;i++){
-      const tp=Math.max(0,p-i*0.008);
-      const tex=gsStartX-tp*(gsStartX-tdX);
-      const tey=gsStartY-tp*(gsStartY-tdY);
-      ctx.globalAlpha=(i/trailLen)*0.15;
-      ctx.fillStyle='#8ab4d4';
-      ctx.beginPath(); ctx.arc(tex-8,tey+4,1.5-i*0.04,0,Math.PI*2); ctx.fill();
-    }
+    ctx.strokeStyle='#00ff88';
+    ctx.lineWidth=1.6;
+    ctx.globalAlpha=0.85;
+    ctx.setLineDash([12,8]);
+    ctx.beginPath();
+    ctx.moveTo(touchX,rwyY+rwyH*0.35);
+    ctx.lineTo(startX,startY);
+    ctx.stroke();
+    ctx.setLineDash([]);
     ctx.globalAlpha=1;
 
-    // Aircraft glow
-    ctx.shadowBlur=25; ctx.shadowColor='#ffd700';
-    const planeSize=W<500?18:26;
-    ctx.font=`${planeSize}px serif`; ctx.textAlign='center';
-    ctx.fillText('✈',planeX,planeY);
-    ctx.shadowBlur=0;
-
-    // Speed & altitude readout
-    const alt=Math.round((1-p)*3000);
-    const spd=Math.round(160+p*20);
-    ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.beginPath();
-    ctx.roundRect(W*0.02,H*0.02,120,60,8); ctx.fill();
-    ctx.strokeStyle='rgba(0,212,255,0.4)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.roundRect(W*0.02,H*0.02,120,60,8); ctx.stroke();
-    ctx.fillStyle='#00d4ff'; ctx.font='bold 8px Orbitron,monospace'; ctx.textAlign='left';
-    ctx.fillText('ALT: '+alt+' ft',W*0.02+10,H*0.02+18);
-    ctx.fillStyle='#00ff88'; ctx.fillText('SPD: '+spd+' kts',W*0.02+10,H*0.02+35);
-    ctx.fillStyle='#ffd700'; ctx.fillText('GS: '+Math.round(p*100)+'%',W*0.02+10,H*0.02+52);
-
-    // CDI/HSI instrument
-    const cdiX=W*0.73, cdiY=H*0.17, cdiR=W<500?30:42;
-    const deviation=turbulence(t,0.04,0.3);
-    const gsdev=turbulence(t,0.03,0.2);
-    ctx.save(); ctx.globalAlpha=0.92;
-    // Instrument background
-    ctx.fillStyle='rgba(5,10,20,0.85)';
-    ctx.beginPath(); ctx.arc(cdiX,cdiY,cdiR+8,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='rgba(0,212,255,0.6)'; ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.arc(cdiX,cdiY,cdiR+8,0,Math.PI*2); ctx.stroke();
-    // Tick marks
-    for(let i=0;i<8;i++){
-      const angle=i*Math.PI/4;
-      const ix1=(cdiR+2)*Math.cos(angle), iy1=(cdiR+2)*Math.sin(angle);
-      const ix2=(cdiR+7)*Math.cos(angle), iy2=(cdiR+7)*Math.sin(angle);
-      ctx.strokeStyle='rgba(0,212,255,0.4)'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(cdiX+ix1,cdiY+iy1); ctx.lineTo(cdiX+ix2,cdiY+iy2); ctx.stroke();
+    const localizerX=rwyX+rwyW;
+    for(let w=1;w<=5;w++){
+      const wt=(frame*0.018+w*0.25)%1;
+      ctx.strokeStyle=`rgba(0,212,255,${(1-wt)*0.36})`;
+      ctx.lineWidth=1.5;
+      ctx.beginPath();
+      ctx.arc(localizerX,rwyY+rwyH/2,wt*W*0.55,-Math.PI*0.42,Math.PI*0.42);
+      ctx.stroke();
     }
-    // CDI dots
-    for(let d=-2;d<=2;d++){
-      if(d===0)continue;
-      ctx.fillStyle='rgba(255,255,255,0.2)';
-      ctx.beginPath(); ctx.arc(cdiX+d*(cdiR*0.45),cdiY,3,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(cdiX,cdiY+d*(cdiR*0.45),3,0,Math.PI*2); ctx.fill();
+
+    progress += 0.00105;
+    if(progress>1) progress=0.02;
+    const landStart=0.84;
+    const approachP=clamp(progress/landStart,0,1);
+    const rollP=clamp((progress-landStart)/(1-landStart),0,1);
+    const q=smooth(approachP);
+    let planeX=lerp(startX,touchX,q);
+    let planeY=lerp(startY,bodyTouchY,q);
+    let pitch=lerp(-0.06,0.10,clamp((approachP-0.64)/0.28,0,1));
+    if(progress>=landStart){
+      const r=smooth(rollP);
+      planeX=lerp(touchX,rollX,r);
+      planeY=bodyTouchY + Math.sin(r*Math.PI)*2;
+      pitch=lerp(0.10,-0.015,clamp(r*1.4,0,1));
+    } else {
+      planeX += Math.sin(frame*0.045)*2*(1-approachP);
+      planeY += Math.cos(frame*0.05)*2.5*(1-approachP);
     }
-    // Crosshairs
-    ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(cdiX-cdiR,cdiY); ctx.lineTo(cdiX+cdiR,cdiY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cdiX,cdiY-cdiR); ctx.lineTo(cdiX,cdiY+cdiR); ctx.stroke();
-    // Localizer needle
-    ctx.strokeStyle='#00d4ff'; ctx.lineWidth=3;
-    ctx.shadowBlur=10; ctx.shadowColor='#00d4ff';
-    const nx=cdiX+deviation*cdiR*0.85;
-    ctx.beginPath(); ctx.moveTo(nx,cdiY-cdiR+6); ctx.lineTo(nx,cdiY+cdiR-6); ctx.stroke();
-    // Arrow heads
-    ctx.fillStyle='#00d4ff';
-    ctx.beginPath(); ctx.moveTo(nx,cdiY-cdiR+6); ctx.lineTo(nx-4,cdiY-cdiR+14); ctx.lineTo(nx+4,cdiY-cdiR+14); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(nx,cdiY+cdiR-6); ctx.lineTo(nx-4,cdiY+cdiR-14); ctx.lineTo(nx+4,cdiY+cdiR-14); ctx.fill();
-    // GS needle
-    ctx.strokeStyle='#00ff88'; ctx.shadowColor='#00ff88';
-    const ny=cdiY+gsdev*cdiR*0.85;
-    ctx.beginPath(); ctx.moveTo(cdiX-cdiR+6,ny); ctx.lineTo(cdiX+cdiR-6,ny); ctx.stroke();
-    ctx.fillStyle='#00ff88';
-    ctx.beginPath(); ctx.moveTo(cdiX-cdiR+6,ny); ctx.lineTo(cdiX-cdiR+14,ny-4); ctx.lineTo(cdiX-cdiR+14,ny+4); ctx.fill();
-    ctx.shadowBlur=0;
-    // Label
-    ctx.fillStyle='rgba(0,212,255,0.9)'; ctx.font='bold 8px Orbitron,monospace'; ctx.textAlign='center';
-    ctx.fillText('CDI/HSI',cdiX,cdiY+cdiR+20);
+
+    const shadowA=clamp((approachP-0.35)/0.65,0,1)*0.28;
+    ctx.save();
+    ctx.globalAlpha=shadowA;
+    ctx.fillStyle='#000000';
+    ctx.beginPath();
+    ctx.ellipse(planeX+8,rwyY+rwyH*0.28,lerp(20,48,approachP),lerp(3,8,approachP),0,0,Math.PI*2);
+    ctx.fill();
     ctx.restore();
 
-    // Labels
-    ctx.font='bold 9px Orbitron,monospace'; ctx.textAlign='left';
-    ctx.fillStyle='rgba(0,255,136,0.85)'; ctx.shadowBlur=4; ctx.shadowColor='#00ff88';
-    ctx.fillText('GLIDE SLOPE',rwyX+rwyW*0.35,H*0.32);
-    ctx.fillStyle='rgba(0,212,255,0.8)'; ctx.shadowColor='#00d4ff';
-    ctx.fillText('LOCALIZER',rwyX+rwyW*1.05,lzY-15);
-    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.shadowBlur=0;
-    ctx.fillText('RUNWAY 27',rwyX+rwyW*0.25,rwyY+rwyH+16);
-    // IAS band label
-    ctx.fillStyle='rgba(255,200,80,0.7)';
-    ctx.fillText('ALSF-2',rwyX+rwyW*1.05,rwyY+rwyH/2+4);
+    if(progress < landStart){
+      const noseX = planeX - Math.cos(pitch)*55*scale;
+      const noseY = planeY - Math.sin(pitch)*55*scale;
+      ctx.save();
+      const beamAlpha = 0.10 + approachP*0.10;
+      ctx.globalAlpha = beamAlpha;
+      const beam = ctx.createLinearGradient(noseX,noseY,noseX-130*scale,rwyY+rwyH*0.45);
+      beam.addColorStop(0,'rgba(255,245,190,0.55)');
+      beam.addColorStop(1,'rgba(255,245,190,0)');
+      ctx.fillStyle = beam;
+      ctx.beginPath();
+      ctx.moveTo(noseX,noseY);
+      ctx.lineTo(noseX-150*scale,rwyY+rwyH*0.20);
+      ctx.lineTo(noseX-130*scale,rwyY+rwyH*0.72);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
 
-    t++;
+    if(progress>landStart && rollP<0.46){
+      for(let i=0;i<8;i++){
+        const puff=(frame*0.024+i*0.14)%1;
+        ctx.globalAlpha=(1-puff)*0.22*(1-rollP);
+        ctx.fillStyle='#dfe8ef';
+        ctx.beginPath();
+        ctx.ellipse(planeX+22+i*7,rwyY+8-i*0.4,4+puff*13,2+puff*5,0,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+    if(progress>landStart){
+      for(let i=0;i<10;i++){
+        const wash=(frame*0.018+i*0.1)%1;
+        ctx.globalAlpha=(1-wash)*0.10*(1-rollP);
+        ctx.fillStyle='#c7d6df';
+        ctx.beginPath();
+        ctx.ellipse(planeX+52*scale+i*8,planeY+11*scale,7+wash*18,2.2+wash*4,0,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.globalAlpha=1;
+    }
+
+    drawAirliner(planeX,planeY,scale,pitch,progress,rollP);
+
+    const alt=Math.max(0,Math.round(2500*(1-approachP)));
+    const spd=Math.max(118,Math.round(155-approachP*22-rollP*18));
+    ctx.fillStyle='rgba(0,0,0,0.68)';
+    ctx.beginPath(); ctx.roundRect(W*0.02,H*0.02,134,66,8); ctx.fill();
+    ctx.strokeStyle='rgba(0,212,255,0.4)'; ctx.stroke();
+    ctx.font='bold 8px Orbitron,monospace';
+    ctx.textAlign='left';
+    ctx.fillStyle='#00d4ff'; ctx.fillText('ALT: '+alt+' ft',W*0.02+10,H*0.02+18);
+    ctx.fillStyle='#00ff88'; ctx.fillText('IAS: '+spd+' kt',W*0.02+10,H*0.02+36);
+    ctx.fillStyle=progress>landStart?'#ffd700':'#8ab4d4';
+    ctx.fillText(progress>landStart?'TOUCHDOWN':'GEAR DOWN',W*0.02+10,H*0.02+54);
+
+    ctx.font='bold 9px Orbitron,monospace';
+    ctx.textAlign='left';
+    ctx.fillStyle='rgba(0,255,136,0.88)';
+    ctx.fillText('ILS GLIDE PATH',W*0.42,H*0.34);
+    ctx.fillStyle='rgba(0,212,255,0.82)';
+    ctx.fillText('LOCALIZER',rwyX+rwyW*1.02,rwyY+rwyH/2-15);
+    ctx.fillStyle='rgba(255,255,255,0.58)';
+    ctx.fillText('RUNWAY 27',rwyX+rwyW*0.18,rwyY+rwyH+18);
+
+    frame++;
     requestAnimationFrame(drawScene);
   }
   drawScene();
