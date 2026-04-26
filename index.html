@@ -354,6 +354,112 @@
     /* PAPI CANVAS */
     #papiCanvas { width:100%; height:260px; display:block; border-radius:12px; background:rgba(0,0,0,0.4); }
 
+  
+    /* TEAM MODAL */
+    .team-modal-overlay {
+      position:fixed; inset:0; z-index:99999;
+      background:rgba(0,0,0,0.75); backdrop-filter:blur(8px);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; visibility:hidden; transition:all 0.35s ease;
+    }
+    .team-modal-overlay.active { opacity:1; visibility:visible; }
+    .team-modal {
+      background:linear-gradient(135deg,rgba(8,18,38,0.98),rgba(4,12,28,0.98));
+      border:1px solid rgba(0,212,255,0.4);
+      border-radius:24px; padding:2.5rem; max-width:400px; width:90%;
+      position:relative; transform:scale(0.85) translateY(20px);
+      transition:all 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+      box-shadow:0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(0,212,255,0.1);
+    }
+    .team-modal-overlay.active .team-modal { transform:scale(1) translateY(0); }
+    .team-modal-close {
+      position:absolute; top:1rem; right:1rem; width:32px; height:32px;
+      background:rgba(255,255,255,0.1); border:none; border-radius:50%;
+      color:white; font-size:1.1rem; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:background 0.2s;
+    }
+    .team-modal-close:hover { background:rgba(229,9,20,0.5); }
+    .modal-av {
+      width:80px; height:80px; border-radius:50%;
+      background:linear-gradient(135deg,var(--primary),var(--accent));
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Orbitron',monospace; font-size:2rem; font-weight:900;
+      color:white; margin:0 auto 1.2rem;
+      box-shadow:0 0 30px rgba(0,212,255,0.4);
+      animation:vipGlow 2s infinite alternate;
+    }
+    .modal-name {
+      font-family:'Orbitron',monospace; font-size:1.3rem; font-weight:900;
+      text-align:center; color:white; letter-spacing:2px; margin-bottom:0.4rem;
+    }
+    .modal-role {
+      text-align:center; color:var(--accent); font-size:0.78rem;
+      letter-spacing:3px; text-transform:uppercase; font-weight:700;
+      margin-bottom:1.5rem;
+    }
+    .modal-divider { height:1px; background:linear-gradient(90deg,transparent,rgba(0,212,255,0.5),transparent); margin-bottom:1.5rem; }
+    .modal-info-row {
+      display:flex; gap:0.8rem; align-items:flex-start;
+      margin-bottom:0.9rem; padding:0.7rem; border-radius:10px;
+      background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);
+    }
+    .modal-info-icon { font-size:1.1rem; min-width:24px; }
+    .modal-info-text { color:var(--text-light); font-size:0.9rem; line-height:1.6; }
+    .modal-info-text b { color:white; }
+    .modal-badge {
+      display:inline-block; background:rgba(0,212,255,0.12);
+      border:1px solid rgba(0,212,255,0.35); color:var(--accent);
+      padding:0.2rem 0.8rem; border-radius:20px; font-size:0.72rem;
+      font-weight:700; letter-spacing:1px; margin-top:0.2rem;
+    }
+    /* Staff cards — clickable cursor */
+    .staff-card, .staff-card-vip { cursor:pointer; }
+
+    /* FEEDBACK SECTION */
+    .feedback-wrap { max-width:600px; margin:0 auto; }
+    .feedback-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:24px; padding:2.5rem; backdrop-filter:blur(20px);
+      position:relative; overflow:hidden;
+    }
+    .feedback-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg,#e50914,#00d4ff,#ffd700);
+    }
+    .feedback-field {
+      width:100%; background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.12); border-radius:12px;
+      padding:0.9rem 1.1rem; color:white; font-family:'Exo 2',sans-serif;
+      font-size:0.95rem; outline:none; margin-bottom:1rem;
+      transition:border-color 0.3s, box-shadow 0.3s;
+      box-sizing:border-box;
+    }
+    .feedback-field:focus {
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(0,212,255,0.15);
+    }
+    .feedback-field::placeholder { color:rgba(255,255,255,0.35); }
+    textarea.feedback-field { min-height:120px; resize:vertical; }
+    .feedback-btn {
+      width:100%; padding:0.95rem; border:none; border-radius:12px;
+      background:linear-gradient(90deg,#e50914,#00d4ff);
+      color:white; font-family:'Orbitron',monospace; font-size:0.9rem;
+      font-weight:700; letter-spacing:2px; cursor:pointer;
+      transition:all 0.3s; position:relative; overflow:hidden;
+    }
+    .feedback-btn:hover { transform:translateY(-2px); box-shadow:0 10px 30px rgba(229,9,20,0.35); }
+    .feedback-btn:active { transform:translateY(0); }
+    .feedback-success {
+      display:none; text-align:center; padding:1.5rem;
+      background:rgba(0,255,136,0.08); border:1px solid rgba(0,255,136,0.3);
+      border-radius:12px; margin-top:1rem;
+    }
+    .feedback-success.show { display:block; animation:fadeIn 0.4s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .feedback-success-icon { font-size:2.5rem; margin-bottom:0.5rem; }
+    .feedback-success-text { color:#00ff88; font-family:'Orbitron',monospace; font-size:0.9rem; letter-spacing:1px; }
+
   </style>
 </head>
 <body>
@@ -364,6 +470,19 @@
   <div class="splash-sub">AeroFusion International</div>
   <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
   <div class="splash-txt">INITIALIZING SYSTEMS...</div>
+</div>
+
+
+<!-- TEAM MEMBER MODAL -->
+<div class="team-modal-overlay" id="teamModal" onclick="closeModal(event)">
+  <div class="team-modal">
+    <button class="team-modal-close" onclick="document.getElementById('teamModal').classList.remove('active')">✕</button>
+    <div class="modal-av" id="modalAv">G</div>
+    <div class="modal-name" id="modalName">GRECY</div>
+    <div class="modal-role" id="modalRole">Airport Manager</div>
+    <div class="modal-divider"></div>
+    <div id="modalBody"></div>
+  </div>
 </div>
 
 <canvas id="bgCanvas"></canvas>
@@ -453,17 +572,18 @@
   <h2 class="section-title">Meet the <span>Airport Team</span></h2>
   <p class="section-desc">GMKDS Airport ka backbone — yeh dedicated professionals 24/7 airport operations ensure karte hain.</p>
   <div class="staff-grid">
-    <div class="staff-card-vip">
+    <div class="staff-card-vip" onclick="openModal('himanshu')">
       <span class="vip-crown"></span>
       <div class="staff-av-vip">H</div>
       <div class="staff-name-vip">HIMANSHU SIR</div>
       <div class="staff-role-vip">Airport Director</div>
+      <div style="margin-top:0.7rem;font-size:0.7rem;color:rgba(255,215,0,0.7);letter-spacing:1px;">TAP TO KNOW MORE ↗</div>
     </div>
-    <div class="staff-card"><div class="staff-av">G</div><div class="staff-name">GRECY</div><div class="staff-role">Airport Manager</div></div>
-    <div class="staff-card"><div class="staff-av">M</div><div class="staff-name">MAJID</div><div class="staff-role">QUALITY MANEGER</div></div>
-    <div class="staff-card"><div class="staff-av">K</div><div class="staff-name">KULSUM</div><div class="staff-role">Accountable Manager</div></div>
-    <div class="staff-card"><div class="staff-av">D</div><div class="staff-name">DILLESHWAR</div><div class="staff-role">SENIOR AME</div></div>
-    <div class="staff-card"><div class="staff-av">S</div><div class="staff-name">SHREYA</div><div class="staff-role">HR of Airport</div></div>
+    <div class="staff-card" onclick="openModal('grecy')"><div class="staff-av">G</div><div class="staff-name">GRECY</div><div class="staff-role">Airport Manager</div><div style="margin-top:0.6rem;font-size:0.7rem;color:rgba(0,212,255,0.6);letter-spacing:1px;">TAP TO KNOW MORE ↗</div></div>
+    <div class="staff-card" onclick="openModal('majid')"><div class="staff-av">M</div><div class="staff-name">MAJID</div><div class="staff-role">QUALITY MANAGER</div><div style="margin-top:0.6rem;font-size:0.7rem;color:rgba(0,212,255,0.6);letter-spacing:1px;">TAP TO KNOW MORE ↗</div></div>
+    <div class="staff-card" onclick="openModal('kulsum')"><div class="staff-av">K</div><div class="staff-name">KULSUM</div><div class="staff-role">Accountable Manager</div><div style="margin-top:0.6rem;font-size:0.7rem;color:rgba(0,212,255,0.6);letter-spacing:1px;">TAP TO KNOW MORE ↗</div></div>
+    <div class="staff-card" onclick="openModal('dilleshwar')"><div class="staff-av">D</div><div class="staff-name">DILLESHWAR</div><div class="staff-role">SENIOR AME</div><div style="margin-top:0.6rem;font-size:0.7rem;color:rgba(0,212,255,0.6);letter-spacing:1px;">TAP TO KNOW MORE ↗</div></div>
+    <div class="staff-card" onclick="openModal('shreya')"><div class="staff-av">S</div><div class="staff-name">SHREYA</div><div class="staff-role">HR of Airport</div><div style="margin-top:0.6rem;font-size:0.7rem;color:rgba(0,212,255,0.6);letter-spacing:1px;">TAP TO KNOW MORE ↗</div></div>
   </div>
 </div>
 
@@ -654,6 +774,33 @@
     <div class="con-card"><div class="con-ico">📍</div><div class="con-title">Location</div><div class="con-val">I.A.E. Bhopal, Madhya Pradesh, India</div></div>
   </div>
 </div>
+
+<div class="div"></div>
+
+<!-- FEEDBACK SECTION -->
+<div class="wrap reveal" id="feedback-sec">
+  <div class="section-tag">Your Voice Matters</div>
+  <h2 class="section-title">Share Your <span>Feedback</span></h2>
+  <p class="section-desc">Aapki feedback hamare liye bahut important hai — directly hamare team tak pahunchegi! ✈</p>
+  <div class="feedback-wrap">
+    <div class="feedback-card">
+      <form id="feedbackForm" onsubmit="submitFeedback(event)">
+        <label style="color:var(--text-light);font-size:0.85rem;letter-spacing:1px;display:block;margin-bottom:0.4rem;">👤 YOUR NAME <span style="color:#e50914;">*</span></label>
+        <input type="text" class="feedback-field" id="fbName" placeholder="Apna naam likhiye..." required>
+        <label style="color:var(--text-light);font-size:0.85rem;letter-spacing:1px;display:block;margin-bottom:0.4rem;">💬 FEEDBACK <span style="color:#e50914;">*</span></label>
+        <textarea class="feedback-field" id="fbMsg" placeholder="Apni feedback yahaan likhiye..." required></textarea>
+        <button type="submit" class="feedback-btn">🚀 SEND FEEDBACK</button>
+      </form>
+      <div class="feedback-success" id="fbSuccess">
+        <div class="feedback-success-icon">✅</div>
+        <div class="feedback-success-text">FEEDBACK SENT SUCCESSFULLY!</div>
+        <div style="color:var(--text-light);font-size:0.85rem;margin-top:0.5rem;">Shukriya! Aapki feedback hamare team tak pahunch gayi. 🙏</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="div"></div>
 
 <!-- FOOTER -->
 <footer>
@@ -1232,6 +1379,195 @@ updateClock(); setInterval(updateClock, 1000);
 // SCROLL REVEAL
 const obs = new IntersectionObserver(entries=>{ entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); }); },{threshold:0.1});
 document.querySelectorAll('.reveal').forEach(r=>obs.observe(r));
+
+// ============================================================
+// TEAM MEMBER DATA
+// ============================================================
+const teamData = {
+  himanshu: {
+    av: 'H', name: 'HIMANSHU SIR', role: 'Airport Director',
+    body: `
+      <div class="modal-info-row" style="border-color:rgba(255,215,0,0.2);background:rgba(255,215,0,0.04);">
+        <div class="modal-info-icon">🏫</div>
+        <div class="modal-info-text"><b>Institute:</b> I.A.E. Bhopal (Institute of Aviation Engineering)</div>
+      </div>
+      <div class="modal-info-row" style="border-color:rgba(255,215,0,0.2);background:rgba(255,215,0,0.04);">
+        <div class="modal-info-icon">🎓</div>
+        <div class="modal-info-text"><b>Designation:</b> Instructor @ I.A.E. Bhopal<br><span class="modal-badge" style="background:rgba(255,215,0,0.15);border-color:rgba(255,215,0,0.5);color:#ffd700;">AVIATION INSTRUCTOR</span></div>
+      </div>
+      <div class="modal-info-row" style="border-color:rgba(255,215,0,0.2);background:rgba(255,215,0,0.04);">
+        <div class="modal-info-icon">✈</div>
+        <div class="modal-info-text"><b>GMKDS Role:</b> Airport Director — leading the entire GMKDS Airport team</div>
+      </div>
+      <div class="modal-info-row" style="border-color:rgba(255,215,0,0.2);background:rgba(255,215,0,0.04);">
+        <div class="modal-info-icon">🌟</div>
+        <div class="modal-info-text"><b>Special Note:</b> Hamara best guide! Himanshu Sir hum sabko bahut achhe se guide karte hain — unki teaching aur mentorship se hi yeh poora project ban paya. 🙏</div>
+      </div>`
+  },
+  grecy: {
+    av: 'G', name: 'GRECY', role: 'Airport Manager',
+    body: `
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🏫</div>
+        <div class="modal-info-text"><b>Institute:</b> I.A.E. Bhopal (Institute of Aviation Engineering)</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">⚡</div>
+        <div class="modal-info-text"><b>Engineering Branch:</b> Electrical Engineering<br><span class="modal-badge">2ND YEAR</span></div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">✈</div>
+        <div class="modal-info-text"><b>Aviation Role:</b> Airport Manager @ GMKDS</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🌟</div>
+        <div class="modal-info-text"><b>Special Note:</b> Smart student — dual expertise in Aviation & Electrical Engineering!</div>
+      </div>`
+  },
+  majid: {
+    av: 'M', name: 'MAJID', role: 'Quality Manager',
+    body: `
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🏫</div>
+        <div class="modal-info-text"><b>Institute:</b> I.A.E. Bhopal (Institute of Aviation Engineering)</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">💻</div>
+        <div class="modal-info-text"><b>Engineering Branch:</b> Computer Science Engineering<br><span class="modal-badge">2ND YEAR</span></div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">✈</div>
+        <div class="modal-info-text"><b>Aviation Role:</b> Quality Manager @ GMKDS</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🌟</div>
+        <div class="modal-info-text"><b>Special Note:</b> Tech-savvy — combining Aviation knowledge with CSE skills!</div>
+      </div>`
+  },
+  kulsum: {
+    av: 'K', name: 'KULSUM', role: 'Accountable Manager',
+    body: `
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🏫</div>
+        <div class="modal-info-text"><b>Institute:</b> I.A.E. Bhopal (Institute of Aviation Engineering)</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">⚡</div>
+        <div class="modal-info-text"><b>Engineering Branch:</b> Electrical Engineering<br><span class="modal-badge">2ND YEAR</span></div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">✈</div>
+        <div class="modal-info-text"><b>Aviation Role:</b> Accountable Manager @ GMKDS</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🌟</div>
+        <div class="modal-info-text"><b>Special Note:</b> Dual expertise in Aviation & Electrical Engineering!</div>
+      </div>`
+  },
+  dilleshwar: {
+    av: 'D', name: 'DILLESHWAR', role: 'Senior AME',
+    body: `
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🏫</div>
+        <div class="modal-info-text"><b>Institute:</b> I.A.E. Bhopal (Institute of Aviation Engineering)</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">💻</div>
+        <div class="modal-info-text"><b>Engineering Branch:</b> Computer Science Engineering<br><span class="modal-badge">2ND YEAR</span></div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">✈</div>
+        <div class="modal-info-text"><b>Aviation Role:</b> Senior AME @ GMKDS</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🌟</div>
+        <div class="modal-info-text"><b>Special Note:</b> Aviation Maintenance Expert with CSE background!</div>
+      </div>`
+  },
+  shreya: {
+    av: 'S', name: 'SHREYA', role: 'HR of Airport',
+    body: `
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🏫</div>
+        <div class="modal-info-text"><b>Institute:</b> I.A.E. Bhopal (Institute of Aviation Engineering)</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">💻</div>
+        <div class="modal-info-text"><b>Engineering Branch:</b> Computer Science Engineering<br><span class="modal-badge">2ND YEAR</span></div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">✈</div>
+        <div class="modal-info-text"><b>Aviation Role:</b> HR of Airport @ GMKDS</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">🌟</div>
+        <div class="modal-info-text"><b>Special Note:</b> People management expert — Aviation meets CSE!</div>
+      </div>`
+  }
+};
+
+function openModal(id) {
+  const d = teamData[id]; if(!d) return;
+  const av = document.getElementById('modalAv');
+  av.textContent = d.av;
+  if(id === 'himanshu'){
+    av.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
+    av.style.color = '#000';
+    av.style.boxShadow = '0 0 35px rgba(255,215,0,0.6)';
+    document.getElementById('teamModal').querySelector('.team-modal').style.borderColor = 'rgba(255,215,0,0.5)';
+  } else {
+    av.style.background = 'linear-gradient(135deg,var(--primary),var(--accent))';
+    av.style.color = 'white';
+    av.style.boxShadow = '0 0 30px rgba(0,212,255,0.4)';
+    document.getElementById('teamModal').querySelector('.team-modal').style.borderColor = 'rgba(0,212,255,0.4)';
+  }
+  document.getElementById('modalName').textContent = d.name;
+  document.getElementById('modalRole').textContent = d.role;
+  document.getElementById('modalBody').innerHTML = d.body;
+  document.getElementById('teamModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(e) {
+  if(e.target.id === 'teamModal') {
+    document.getElementById('teamModal').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+}
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    document.getElementById('teamModal').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+});
+
+// ============================================================
+// FEEDBACK — Send via mailto
+// ============================================================
+function submitFeedback(e) {
+  e.preventDefault();
+  const name = document.getElementById('fbName').value.trim();
+  const msg = document.getElementById('fbMsg').value.trim();
+  if(!name || !msg) return;
+
+  // Send via mailto to your email
+  const subject = encodeURIComponent('GMKDS Airport Feedback from ' + name);
+  const body = encodeURIComponent('Name: ' + name + '\n\nFeedback:\n' + msg + '\n\n— Sent from GMKDS Airport Website');
+  window.location.href = 'mailto:gmkdsairport@gmail.com?subject=' + subject + '&body=' + body;
+
+  // Show success message
+  document.getElementById('feedbackForm').style.display = 'none';
+  const succ = document.getElementById('fbSuccess');
+  succ.classList.add('show');
+
+  // Reset after 5 seconds
+  setTimeout(function(){
+    document.getElementById('feedbackForm').style.display = 'block';
+    succ.classList.remove('show');
+    document.getElementById('fbName').value = '';
+    document.getElementById('fbMsg').value = '';
+  }, 5000);
+}
+
 </script>
 </body>
 </html>
