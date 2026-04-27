@@ -55,22 +55,9 @@
     .language-switcher .lang-icon { color:var(--accent); font-size:0.95rem; line-height:1; }
     .language-switcher select { max-width:150px; border:0; outline:0; border-radius:999px; background:rgba(4,8,15,0.95); color:var(--text); padding:0.38rem 0.7rem; font-family:'Exo 2',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.5px; cursor:pointer; }
     .language-switcher select option { background:#06101f; color:white; }
-    #google_translate_element,
-    .goog-te-banner-frame,
-    iframe.goog-te-banner-frame,
-    .goog-te-gadget,
-    .goog-te-balloon-frame,
-    #goog-gt-tt,
-    .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
-    .VIpgJd-ZVi9od-l4eHX-hSRGPd,
-    .skiptranslate,
-    #goog-gt-,
-    .goog-tooltip,
-    .goog-tooltip-content { display:none !important; visibility:hidden !important; }
-    body { top:0 !important; margin-top:0 !important; }
-    body.translated-ltr { top:0 !important; margin-top:0 !important; }
-    body.translated-rtl { top:0 !important; margin-top:0 !important; }
-    .goog-te-banner-frame.skiptranslate { display:none !important; }
+    #google_translate_element, .goog-te-banner-frame, iframe.goog-te-banner-frame, .goog-te-gadget { display:none !important; }
+    body { top:0 !important; }
+    .goog-te-balloon-frame, #goog-gt-tt { display:none !important; }
     @keyframes badgePulse { 0%,100%{box-shadow:0 0 0 0 var(--glow-red)} 50%{box-shadow:0 0 0 8px transparent} }
 
     /* HERO */
@@ -490,16 +477,16 @@
       animation: fadeUp 0.8s ease 0.1s forwards;
     }
     .hero-logo-img {
-      width: 140px; height: 140px; object-fit: contain;
-      filter: drop-shadow(0 0 20px rgba(0,212,255,0.4));
-      border-radius: 16px;
+      width: 210px; height: 210px; object-fit: contain;
+      filter: drop-shadow(0 0 25px rgba(0,212,255,0.5));
+      border-radius: 20px;
     }
 
     /* IMPROVED MOBILE STYLES */
     @media(max-width:600px){
       /* Hero */
       .hero { padding: 5rem 1.2rem 3rem; }
-      .hero-logo-img { width: 100px; height: 100px; }
+      .hero-logo-img { width: 150px; height: 150px; }
       .hero-eyebrow { font-size:0.65rem; letter-spacing:3px; }
       .hero-desc { font-size:0.92rem; }
       .hero-btns { flex-direction:column; align-items:center; }
@@ -566,7 +553,7 @@
     }
 
     @media(max-width:400px){
-      .hero-logo-img { width: 80px; height: 80px; }
+      .hero-logo-img { width: 120px; height: 120px; }
       .staff-grid { grid-template-columns: 1fr 1fr; }
       .hero-eyebrow { font-size:0.58rem; letter-spacing:2px; }
     }
@@ -637,15 +624,7 @@
 </nav>
 <div class="mobile-menu" id="mobileMenu">
   <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
-  <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Home</a>
-  <a href="#" onclick="document.getElementById('ticker-wrap').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Flights</a>
-  <a href="#" onclick="document.getElementById('features-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Terminal</a>
-  <a href="#" onclick="document.getElementById('airline-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Airline</a>
-  <a href="#" onclick="document.getElementById('papi-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">PAPI</a>
-  <a href="#" onclick="document.getElementById('ils-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">ILS</a>
-  <a href="#" onclick="document.getElementById('gallery-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Gallery</a>
-  <a href="#" onclick="document.getElementById('contact-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Contact</a>
-  <div class="language-switcher notranslate">
+  <div class="language-switcher notranslate" style="margin-bottom:0.5rem;">
     <span class="lang-icon">🌐</span>
     <select data-language-select aria-label="Select website language" onchange="changeSiteLanguage(this.value);document.getElementById('mobileMenu').classList.remove('open');">
       <option value="en">English</option>
@@ -666,6 +645,14 @@
       <option value="sd">Sindhi</option>
     </select>
   </div>
+  <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Home</a>
+  <a href="#" onclick="document.getElementById('ticker-wrap').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Flights</a>
+  <a href="#" onclick="document.getElementById('features-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Terminal</a>
+  <a href="#" onclick="document.getElementById('airline-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Airline</a>
+  <a href="#" onclick="document.getElementById('papi-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">PAPI</a>
+  <a href="#" onclick="document.getElementById('ils-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">ILS</a>
+  <a href="#" onclick="document.getElementById('gallery-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Gallery</a>
+  <a href="#" onclick="document.getElementById('contact-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Contact</a>
 </div>
 
 <!-- HERO -->
@@ -1004,15 +991,6 @@ function applyGoogleTranslate(lang, attempt){
   if(combo){
     combo.value = lang;
     combo.dispatchEvent(new Event('change'));
-    // After translation fires, nuke the bar again
-    setTimeout(function(){
-      document.body.style.setProperty('top','0px','important');
-      document.body.style.setProperty('margin-top','0px','important');
-    }, 100);
-    setTimeout(function(){
-      document.body.style.setProperty('top','0px','important');
-      document.body.style.setProperty('margin-top','0px','important');
-    }, 600);
     return;
   }
   if((attempt || 0) < 25){
@@ -1022,10 +1000,7 @@ function applyGoogleTranslate(lang, attempt){
 
 function changeSiteLanguage(lang){
   lang = lang || 'en';
-  // Save scroll position before reload
-  var scrollY = window.scrollY || window.pageYOffset;
   localStorage.setItem('gmkds_site_language', lang);
-  localStorage.setItem('gmkds_scroll_pos', scrollY);
   syncLanguageSelectors(lang);
   if(lang === 'en'){
     clearGoogTransCookie();
@@ -1045,13 +1020,6 @@ window.googleTranslateElementInit = function(){
 
   const savedLang = localStorage.getItem('gmkds_site_language') || 'en';
   syncLanguageSelectors(savedLang);
-
-  // Restore scroll position after reload
-  var savedScroll = localStorage.getItem('gmkds_scroll_pos');
-  if(savedScroll && parseInt(savedScroll) > 0){
-    localStorage.removeItem('gmkds_scroll_pos');
-    setTimeout(function(){ window.scrollTo(0, parseInt(savedScroll)); }, 200);
-  }
   if(savedLang !== 'en'){
     setGoogTransCookie('/en/' + savedLang);
     applyGoogleTranslate(savedLang, 0);
@@ -2434,52 +2402,64 @@ function submitFeedback(e) {
 }
 
 </script>
-<div id="google_translate_element" style="display:none!important;visibility:hidden!important;" class="notranslate" aria-hidden="true"></div>
-<style>
-/* NUCLEAR OPTION — kills Google bar no matter what */
-.goog-te-banner-frame { display:none!important; }
-body > .skiptranslate { display:none!important; }
-#goog-gt-tt { display:none!important; }
-.goog-te-balloon-frame { display:none!important; }
-.VIpgJd-ZVi9od-aZ2wEe-wOHMyf { display:none!important; }
-body.translated-ltr,
-body.translated-rtl { top:0!important; margin-top:0!important; }
-</style>
+<div id="google_translate_element" style="display:none!important;visibility:hidden!important;position:absolute!important;top:-9999px!important;" class="notranslate" aria-hidden="true"></div>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<style>
+/* === KILL GOOGLE BAR — loaded AFTER Google script === */
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+#google_translate_element,
+#google_translate_element2,
+.goog-te-gadget,
+.skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-tooltip,
+.goog-tooltip-content,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+.VIpgJd-ZVi9od-l4eHX-hSRGPd { display:none!important; visibility:hidden!important; }
+body.translated-ltr,
+body.translated-rtl { top:0!important; margin-top:0!important; position:relative!important; }
+body { top:0!important; margin-top:0!important; }
+</style>
 <script>
-// Aggressive Google bar killer — runs as soon as possible
-(function killGoogleBar(){
-  function nuke(){
-    // Force body top to 0
-    document.body.style.setProperty('top','0px','important');
-    document.body.style.setProperty('margin-top','0px','important');
-    // Hide all Google Translate iframes and bars
-    var selectors = [
-      '.goog-te-banner-frame',
-      'iframe[name="google_translate_frame"]',
-      '#goog-gt-tt',
-      '.goog-tooltip',
-      '.VIpgJd-ZVi9od-aZ2wEe-wOHMyf',
-      '#google_translate_element2'
-    ];
-    selectors.forEach(function(sel){
-      var els = document.querySelectorAll(sel);
-      els.forEach(function(el){ el.style.setProperty('display','none','important'); });
+(function(){
+  function killBar(){
+    // Reset body top (Google sets it to 40px)
+    if(document.body){
+      document.body.style.setProperty('top','0','important');
+      document.body.style.setProperty('margin-top','0','important');
+    }
+    // Kill every possible Google element
+    [
+      '.goog-te-banner-frame','iframe.goog-te-banner-frame',
+      '#goog-gt-tt','.goog-tooltip','.goog-te-balloon-frame',
+      '.VIpgJd-ZVi9od-aZ2wEe-wOHMyf','.skiptranslate > font',
+      '.skiptranslate > div','body > .skiptranslate'
+    ].forEach(function(s){
+      document.querySelectorAll(s).forEach(function(el){
+        el.style.setProperty('display','none','important');
+        el.style.setProperty('visibility','hidden','important');
+      });
     });
-    // Also check all iframes for google translate
+    // Kill all iframes from google translate
     document.querySelectorAll('iframe').forEach(function(f){
-      if(f.src && f.src.indexOf('translate.google') > -1){
+      if((f.id||'').indexOf('goog')>-1 || (f.className||'').indexOf('goog')>-1 ||
+         (f.src||'').indexOf('translate')>-1){
         f.style.setProperty('display','none','important');
       }
     });
   }
-  // Run immediately
-  nuke();
-  // Run on every DOM change
-  var obs = new MutationObserver(nuke);
-  obs.observe(document.documentElement, {childList:true, subtree:true, attributes:true, attributeFilter:['style','class']});
-  // Also poll every 200ms for extra safety
-  setInterval(nuke, 200);
+  // Watch the DOM constantly
+  var obs = new MutationObserver(killBar);
+  obs.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+  // Poll every 150ms for extra safety
+  setInterval(killBar,150);
+  // Also run immediately and on load
+  killBar();
+  window.addEventListener('load',killBar);
+  document.addEventListener('DOMContentLoaded',killBar);
 })();
 </script>
 </body>
