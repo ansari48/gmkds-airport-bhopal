@@ -51,6 +51,26 @@
     .nav-links a { color: var(--text-light); text-decoration: none; font-size: 0.9rem; letter-spacing: 1px; font-weight: 500; transition: color 0.3s; text-transform: uppercase; }
     .nav-links a:hover { color: var(--accent); }
     .nav-badge { background: var(--primary); color: white; padding: 0.4rem 1.2rem; border-radius: 20px; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; animation: badgePulse 2s infinite; }
+    .language-switcher { display:flex; align-items:center; gap:0.45rem; padding:0.25rem 0.45rem; border:1px solid var(--border); border-radius:999px; background:rgba(0,212,255,0.07); }
+    .language-switcher .lang-icon { color:var(--accent); font-size:0.95rem; line-height:1; }
+    .language-switcher select { max-width:150px; border:0; outline:0; border-radius:999px; background:rgba(4,8,15,0.95); color:var(--text); padding:0.38rem 0.7rem; font-family:'Exo 2',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.5px; cursor:pointer; }
+    .language-switcher select option { background:#06101f; color:white; }
+    #google_translate_element,
+    .goog-te-banner-frame,
+    iframe.goog-te-banner-frame,
+    .goog-te-gadget,
+    .goog-te-balloon-frame,
+    #goog-gt-tt,
+    .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+    .VIpgJd-ZVi9od-l4eHX-hSRGPd,
+    .skiptranslate,
+    #goog-gt-,
+    .goog-tooltip,
+    .goog-tooltip-content { display:none !important; visibility:hidden !important; }
+    body { top:0 !important; margin-top:0 !important; }
+    body.translated-ltr { top:0 !important; margin-top:0 !important; }
+    body.translated-rtl { top:0 !important; margin-top:0 !important; }
+    .goog-te-banner-frame.skiptranslate { display:none !important; }
     @keyframes badgePulse { 0%,100%{box-shadow:0 0 0 0 var(--glow-red)} 50%{box-shadow:0 0 0 8px transparent} }
 
     /* HERO */
@@ -182,7 +202,7 @@
 
     @media(max-width:768px){
       nav { padding:1rem 1.5rem; }
-      .nav-links,.nav-badge { display:none; }
+      .nav-links,.nav-badge, nav > .language-switcher { display:none; }
       .weather-card { grid-template-columns:1fr; }
       .gal-grid { grid-template-columns:1fr 1fr; grid-template-rows:auto; }
       .gal-item:first-child { grid-row:auto; }
@@ -514,6 +534,7 @@
       /* ILS cards */
       .ils-grid { grid-template-columns:1fr; }
       .ils-card { padding:1.2rem; }
+      .mobile-menu .language-switcher { display:flex; }
 
       /* Gallery */
       .gal-grid { grid-template-columns:1fr; grid-template-rows:auto; }
@@ -588,6 +609,27 @@
     <li><a href="#gallery-sec" onclick="document.getElementById('gallery-sec').scrollIntoView({behavior:'smooth'});return false;">Gallery</a></li>
     <li><a href="#contact-sec" onclick="document.getElementById('contact-sec').scrollIntoView({behavior:'smooth'});return false;">Contact</a></li>
   </ul>
+  <div class="language-switcher notranslate">
+    <span class="lang-icon">🌐</span>
+    <select data-language-select aria-label="Select website language" onchange="changeSiteLanguage(this.value)">
+      <option value="en">English</option>
+      <option value="hi">Hindi</option>
+      <option value="bn">Bengali</option>
+      <option value="mr">Marathi</option>
+      <option value="gu">Gujarati</option>
+      <option value="ta">Tamil</option>
+      <option value="te">Telugu</option>
+      <option value="kn">Kannada</option>
+      <option value="ml">Malayalam</option>
+      <option value="pa">Punjabi</option>
+      <option value="ur">Urdu</option>
+      <option value="or">Odia</option>
+      <option value="as">Assamese</option>
+      <option value="sa">Sanskrit</option>
+      <option value="ne">Nepali</option>
+      <option value="sd">Sindhi</option>
+    </select>
+  </div>
   <div class="nav-badge">LIVE</div>
   <div class="hamburger" onclick="document.getElementById('mobileMenu').classList.toggle('open')">
     <span></span><span></span><span></span>
@@ -603,6 +645,27 @@
   <a href="#" onclick="document.getElementById('ils-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">ILS</a>
   <a href="#" onclick="document.getElementById('gallery-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Gallery</a>
   <a href="#" onclick="document.getElementById('contact-sec').scrollIntoView({behavior:'smooth'});document.getElementById('mobileMenu').classList.remove('open');return false;">Contact</a>
+  <div class="language-switcher notranslate">
+    <span class="lang-icon">🌐</span>
+    <select data-language-select aria-label="Select website language" onchange="changeSiteLanguage(this.value);document.getElementById('mobileMenu').classList.remove('open');">
+      <option value="en">English</option>
+      <option value="hi">Hindi</option>
+      <option value="bn">Bengali</option>
+      <option value="mr">Marathi</option>
+      <option value="gu">Gujarati</option>
+      <option value="ta">Tamil</option>
+      <option value="te">Telugu</option>
+      <option value="kn">Kannada</option>
+      <option value="ml">Malayalam</option>
+      <option value="pa">Punjabi</option>
+      <option value="ur">Urdu</option>
+      <option value="or">Odia</option>
+      <option value="as">Assamese</option>
+      <option value="sa">Sanskrit</option>
+      <option value="ne">Nepali</option>
+      <option value="sd">Sindhi</option>
+    </select>
+  </div>
 </div>
 
 <!-- HERO -->
@@ -907,6 +970,98 @@
 </footer>
 
 <script>
+// LANGUAGE TRANSLATOR
+const GMKDS_TRANSLATE_LANGS = 'en,hi,bn,mr,gu,ta,te,kn,ml,pa,ur,or,as,sa,ne,sd';
+
+function syncLanguageSelectors(lang){
+  document.querySelectorAll('[data-language-select]').forEach(function(select){
+    select.value = lang || 'en';
+  });
+}
+
+function setGoogTransCookie(value){
+  const secure = location.protocol === 'https:' ? '; Secure' : '';
+  try {
+    document.cookie = 'googtrans=' + value + '; path=/; SameSite=Lax' + secure;
+    if(location.hostname && location.hostname.indexOf('.') > -1){
+      document.cookie = 'googtrans=' + value + '; domain=.' + location.hostname + '; path=/; SameSite=Lax' + secure;
+    }
+  } catch(e) {}
+}
+
+function clearGoogTransCookie(){
+  const secure = location.protocol === 'https:' ? '; Secure' : '';
+  try {
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; SameSite=Lax' + secure;
+    if(location.hostname && location.hostname.indexOf('.') > -1){
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 GMT; domain=.' + location.hostname + '; path=/; SameSite=Lax' + secure;
+    }
+  } catch(e) {}
+}
+
+function applyGoogleTranslate(lang, attempt){
+  const combo = document.querySelector('.goog-te-combo');
+  if(combo){
+    combo.value = lang;
+    combo.dispatchEvent(new Event('change'));
+    // After translation fires, nuke the bar again
+    setTimeout(function(){
+      document.body.style.setProperty('top','0px','important');
+      document.body.style.setProperty('margin-top','0px','important');
+    }, 100);
+    setTimeout(function(){
+      document.body.style.setProperty('top','0px','important');
+      document.body.style.setProperty('margin-top','0px','important');
+    }, 600);
+    return;
+  }
+  if((attempt || 0) < 25){
+    setTimeout(function(){ applyGoogleTranslate(lang, (attempt || 0) + 1); }, 250);
+  }
+}
+
+function changeSiteLanguage(lang){
+  lang = lang || 'en';
+  // Save scroll position before reload
+  var scrollY = window.scrollY || window.pageYOffset;
+  localStorage.setItem('gmkds_site_language', lang);
+  localStorage.setItem('gmkds_scroll_pos', scrollY);
+  syncLanguageSelectors(lang);
+  if(lang === 'en'){
+    clearGoogTransCookie();
+    location.reload();
+    return;
+  }
+  setGoogTransCookie('/en/' + lang);
+  applyGoogleTranslate(lang, 0);
+}
+
+window.googleTranslateElementInit = function(){
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: GMKDS_TRANSLATE_LANGS,
+    autoDisplay: false
+  }, 'google_translate_element');
+
+  const savedLang = localStorage.getItem('gmkds_site_language') || 'en';
+  syncLanguageSelectors(savedLang);
+
+  // Restore scroll position after reload
+  var savedScroll = localStorage.getItem('gmkds_scroll_pos');
+  if(savedScroll && parseInt(savedScroll) > 0){
+    localStorage.removeItem('gmkds_scroll_pos');
+    setTimeout(function(){ window.scrollTo(0, parseInt(savedScroll)); }, 200);
+  }
+  if(savedLang !== 'en'){
+    setGoogTransCookie('/en/' + savedLang);
+    applyGoogleTranslate(savedLang, 0);
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function(){
+  syncLanguageSelectors(localStorage.getItem('gmkds_site_language') || 'en');
+});
+
 // SPLASH SCREEN
 window.addEventListener('load', function() {
   setTimeout(function() {
@@ -2278,6 +2433,54 @@ function submitFeedback(e) {
   }, 5000);
 }
 
+</script>
+<div id="google_translate_element" style="display:none!important;visibility:hidden!important;" class="notranslate" aria-hidden="true"></div>
+<style>
+/* NUCLEAR OPTION — kills Google bar no matter what */
+.goog-te-banner-frame { display:none!important; }
+body > .skiptranslate { display:none!important; }
+#goog-gt-tt { display:none!important; }
+.goog-te-balloon-frame { display:none!important; }
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf { display:none!important; }
+body.translated-ltr,
+body.translated-rtl { top:0!important; margin-top:0!important; }
+</style>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script>
+// Aggressive Google bar killer — runs as soon as possible
+(function killGoogleBar(){
+  function nuke(){
+    // Force body top to 0
+    document.body.style.setProperty('top','0px','important');
+    document.body.style.setProperty('margin-top','0px','important');
+    // Hide all Google Translate iframes and bars
+    var selectors = [
+      '.goog-te-banner-frame',
+      'iframe[name="google_translate_frame"]',
+      '#goog-gt-tt',
+      '.goog-tooltip',
+      '.VIpgJd-ZVi9od-aZ2wEe-wOHMyf',
+      '#google_translate_element2'
+    ];
+    selectors.forEach(function(sel){
+      var els = document.querySelectorAll(sel);
+      els.forEach(function(el){ el.style.setProperty('display','none','important'); });
+    });
+    // Also check all iframes for google translate
+    document.querySelectorAll('iframe').forEach(function(f){
+      if(f.src && f.src.indexOf('translate.google') > -1){
+        f.style.setProperty('display','none','important');
+      }
+    });
+  }
+  // Run immediately
+  nuke();
+  // Run on every DOM change
+  var obs = new MutationObserver(nuke);
+  obs.observe(document.documentElement, {childList:true, subtree:true, attributes:true, attributeFilter:['style','class']});
+  // Also poll every 200ms for extra safety
+  setInterval(nuke, 200);
+})();
 </script>
 </body>
 </html>
