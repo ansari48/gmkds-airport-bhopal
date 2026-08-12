@@ -176,12 +176,15 @@
     .div { position:relative; z-index:1; height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent); margin:0 2rem; }
 
     /* FOOTER */
-    footer { position:relative; z-index:1; background:rgba(0,0,0,0.85); border-top:1px solid var(--border); padding:2.5rem 3rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; backdrop-filter:blur(20px); }
+    footer { position:relative; z-index:1; background:rgba(0,0,0,0.85); border-top:1px solid var(--border); padding:2.5rem 3rem 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; backdrop-filter:blur(20px); }
     .f-logo { font-family:'Orbitron',monospace; font-size:1rem; font-weight:700; background:linear-gradient(90deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
     .f-copy { color:var(--text-light); font-size:0.85rem; }
     .f-links { display:flex; gap:1.5rem; }
     .f-links a { color:var(--text-light); text-decoration:none; font-size:0.85rem; transition:color 0.3s; }
     .f-links a:hover { color:var(--accent); }
+    .dev-credit-bar { position:relative; z-index:1; width:100%; text-align:center; background:rgba(0,0,0,0.85); border-top:1px solid var(--border); padding:1.1rem 1rem 1.4rem; }
+    .dev-credit-bar .dev-text { font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; background:linear-gradient(90deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    @media(max-width:768px){ .dev-credit-bar .dev-text { font-size:0.68rem; letter-spacing:1px; } }
 
     /* REVEAL */
     .reveal { opacity:0; transform:translateY(30px); transition:opacity 0.7s ease, transform 0.7s ease; }
@@ -974,6 +977,9 @@
     <a href="#">Support</a>
   </div>
 </footer>
+<div class="dev-credit-bar">
+  <div class="dev-text">DESIGN AND DEVELOPED BY ABDUL MAJID</div>
+</div>
 
 <script>
 // LANGUAGE TRANSLATOR
