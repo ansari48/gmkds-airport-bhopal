@@ -186,6 +186,12 @@
     .dev-credit-bar .dev-text { font-family:'Orbitron',monospace; font-size:0.85rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; background:linear-gradient(90deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
     @media(max-width:768px){ .dev-credit-bar .dev-text { font-size:0.68rem; letter-spacing:1px; } }
 
+    /* SCROLL TO TOP BUTTON */
+    #scrollTopBtn { position:fixed; bottom:2rem; right:2rem; z-index:999; width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent)); border:none; color:white; font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(0,0,0,0.4); opacity:0; visibility:hidden; transform:translateY(20px); transition:all 0.35s ease; }
+    #scrollTopBtn.show { opacity:1; visibility:visible; transform:translateY(0); }
+    #scrollTopBtn:hover { transform:translateY(-4px); box-shadow:0 10px 28px var(--glow-blue); }
+    @media(max-width:768px){ #scrollTopBtn { bottom:1.2rem; right:1.2rem; width:42px; height:42px; font-size:1.1rem; } }
+
     /* REVEAL */
     .reveal { opacity:0; transform:translateY(30px); transition:opacity 0.7s ease, transform 0.7s ease; }
     .reveal.visible { opacity:1; transform:translateY(0); }
@@ -676,7 +682,7 @@
   </div>
   <div class="hero-btns">
     <button class="btn-p" onclick="document.getElementById('ticker-wrap').scrollIntoView({behavior:'smooth'})">View Flights ✈</button>
-    <button class="btn-s" onclick="document.getElementById('features-sec').scrollIntoView({behavior:'smooth'})">Explore Terminal</button>
+    <button class="btn-s" onclick="document.getElementById('team-sec').scrollIntoView({behavior:'smooth'})">Explore Terminal</button>
   </div>
   <div class="scroll-ind">
     <div class="scroll-line"></div>
@@ -687,23 +693,58 @@
 <!-- TICKER -->
 <div class="ticker-wrap" id="ticker-wrap">
   <div class="ticker-label">LIVE</div>
-  <div class="ticker-track">
-    <span class="ticker-item">✈ IndiGo 6E-1234 → Mumbai <span>ON TIME</span></span>
-    <span class="ticker-item">✈ Air India AI-5678 → Delhi <span style="color:#ffaa00">DELAYED</span></span>
-    <span class="ticker-item">✈ SpiceJet SG-9012 → Bangalore <span>ON TIME</span></span>
-    <span class="ticker-item">✈ Vistara UK-3456 → Kolkata <span>ON TIME</span></span>
-    <span class="ticker-item">✈ GoFirst G8-7890 → Chennai <span>ON TIME</span></span>
+  <div class="ticker-track" id="flightTicker">
+    <span class="ticker-item">✈ Loading live flight data<span>...</span></span>
     <span class="ticker-item">🌤 Bhopal: 28°C Sunny &nbsp;|&nbsp; Visibility 10km</span>
     <span class="ticker-item">📢 Enhanced Security &amp; Digital Services Now Active</span>
-    <span class="ticker-item">✈ IndiGo 6E-1234 → Mumbai <span>ON TIME</span></span>
-    <span class="ticker-item">✈ Air India AI-5678 → Delhi <span style="color:#ffaa00">DELAYED</span></span>
-    <span class="ticker-item">✈ SpiceJet SG-9012 → Bangalore <span>ON TIME</span></span>
-    <span class="ticker-item">✈ Vistara UK-3456 → Kolkata <span>ON TIME</span></span>
-    <span class="ticker-item">✈ GoFirst G8-7890 → Chennai <span>ON TIME</span></span>
+    <span class="ticker-item">✈ Loading live flight data<span>...</span></span>
     <span class="ticker-item">🌤 Bhopal: 28°C Sunny &nbsp;|&nbsp; Visibility 10km</span>
     <span class="ticker-item">📢 Enhanced Security &amp; Digital Services Now Active</span>
   </div>
 </div>
+<script>
+// ============================================================
+// LIVE FLIGHT DATA — OpenSky Network (free, no API key needed)
+// ============================================================
+async function loadLiveFlights(){
+  const staticItems = [
+    '<span class="ticker-item">🌤 Bhopal: 28°C Sunny &nbsp;|&nbsp; Visibility 10km</span>',
+    '<span class="ticker-item">📢 Enhanced Security &amp; Digital Services Now Active</span>'
+  ];
+  try{
+    // Bounding box roughly covering Central India around Bhopal
+    const resp = await fetch('https://opensky-network.org/api/states/all?lamin=19.0&lomin=73.0&lamax=27.0&lomax=82.0');
+    if(!resp.ok) throw new Error('OpenSky response not OK');
+    const data = await resp.json();
+    const states = (data.states || []).filter(s => s[1] && s[1].trim().length > 0).slice(0, 8);
+    if(states.length === 0) throw new Error('No live flights found in range');
+
+    const flightItems = states.map(s => {
+      const callsign = s[1].trim();
+      const originCountry = s[2] || 'Unknown';
+      const onGround = s[8];
+      const altitude = s[7] ? Math.round(s[7]) + 'm' : 'N/A';
+      const speed = s[9] ? Math.round(s[9] * 3.6) + 'km/h' : 'N/A';
+      const status = onGround ? '<span>ON GROUND</span>' : `<span>IN FLIGHT • ${altitude} • ${speed}</span>`;
+      return `<span class="ticker-item">✈ LIVE ${callsign} (${originCountry}) ${status}</span>`;
+    });
+
+    const allItems = [...flightItems, ...staticItems];
+    const html = allItems.join('') + allItems.join(''); // duplicate for seamless scroll
+    document.getElementById('flightTicker').innerHTML = html;
+  }catch(e){
+    console.log('Live flight data unavailable, showing fallback:', e);
+    const fallback = [
+      '<span class="ticker-item">✈ Live tracking temporarily unavailable</span>',
+      ...staticItems
+    ];
+    const html = fallback.join('') + fallback.join('');
+    document.getElementById('flightTicker').innerHTML = html;
+  }
+}
+loadLiveFlights();
+setInterval(loadLiveFlights, 60000); // refresh every 60 seconds
+</script>
 
 <!-- CLOCK -->
 <div class="clock-strip">
@@ -713,7 +754,7 @@
 </div>
 
 <!-- STAFF -->
-<div class="wrap reveal">
+<div class="wrap reveal" id="team-sec">
   <div class="section-tag">Our Leadership</div>
   <h2 class="section-title">Meet the <span>Airport Team</span></h2>
   <p class="section-desc">GMKDS Airport ka backbone — yeh dedicated professionals 24/7 airport operations ensure karte hain.</p>
@@ -980,6 +1021,21 @@
 <div class="dev-credit-bar">
   <div class="dev-text">DESIGN AND DEVELOPED BY ABDUL MAJID</div>
 </div>
+
+<!-- SCROLL TO TOP BUTTON -->
+<button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top" title="Back to top">↑</button>
+<script>
+(function(){
+  const btn = document.getElementById('scrollTopBtn');
+  window.addEventListener('scroll', function(){
+    if(window.scrollY > 400){
+      btn.classList.add('show');
+    } else {
+      btn.classList.remove('show');
+    }
+  });
+})();
+</script>
 
 <script>
 // LANGUAGE TRANSLATOR
@@ -2300,6 +2356,10 @@ const teamData = {
       <div class="modal-info-row">
         <div class="modal-info-icon">🌟</div>
         <div class="modal-info-text"><b>Special Note:</b> Tech-savvy — combining Aviation knowledge with CSE skills!</div>
+      </div>
+      <div class="modal-info-row">
+        <div class="modal-info-icon">💻</div>
+        <div class="modal-info-text"><b>Website Creator:</b> This entire GMKDS Airport website has been designed and developed by Majid himself!</div>
       </div>`
   },
   kulsum: {
