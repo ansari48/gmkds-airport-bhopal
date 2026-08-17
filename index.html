@@ -880,11 +880,28 @@ document.addEventListener('keydown', function(e) {
       <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#00ff88;box-shadow:0 0 6px #00ff88;"></span>
       <span style="font-family:'Orbitron',monospace;font-size:0.78rem;font-weight:700;letter-spacing:1px;background:linear-gradient(90deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">GMKDS AI ASSISTANT</span>
     </div>
-    <button 
-      id="ai-modal-close" 
-      style="background:transparent;border:none;color:#8ab4d4;font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px;"
-      title="Close"
-    >&times;</button>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button 
+        id="ai-modal-key-btn" 
+        style="background:rgba(255,255,255,0.06);border:1px solid rgba(0,212,255,0.3);color:#8ab4d4;font-size:0.68rem;border-radius:10px;padding:2px 6px;cursor:pointer;"
+        title="Live Gemini Key Settings"
+      >⚙️ API Key</button>
+      <button 
+        id="ai-modal-close" 
+        style="background:transparent;border:none;color:#8ab4d4;font-size:1.3rem;cursor:pointer;line-height:1;padding:2px 6px;"
+        title="Close"
+      >&times;</button>
+    </div>
+  </div>
+
+  <!-- Key Config Popdown -->
+  <div id="ai-key-box" style="display:none;background:rgba(8,16,36,0.96);border-bottom:1px solid rgba(0,212,255,0.25);padding:8px 12px;font-size:0.75rem;">
+    <div style="color:var(--accent);margin-bottom:4px;font-weight:600;">✦ Live Google Gemini API Key (Optional)</div>
+    <div style="display:flex;gap:6px;">
+      <input type="password" id="ai-custom-key-input" placeholder="Paste AI Studio Key (AIzaSy...)" style="flex:1;background:rgba(0,0,0,0.5);border:1px solid rgba(0,212,255,0.3);border-radius:8px;padding:4px 8px;font-size:0.72rem;color:#fff;outline:none;" />
+      <button id="ai-save-key-btn" style="background:var(--accent);color:#050c1a;font-weight:bold;border:none;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:0.72rem;">Save</button>
+    </div>
+    <div style="color:#8ab4d4;font-size:0.68rem;margin-top:3px;">Deploy ke baad live internet search ke liye key save karein.</div>
   </div>
 
   <!-- Chat Log / Content Body -->
@@ -931,12 +948,40 @@ document.addEventListener('keydown', function(e) {
     const toggleBtn = document.getElementById("ai-toggle-btn");
     const modal = document.getElementById("ai-modal");
     const closeBtn = document.getElementById("ai-modal-close");
+    const keyBtn = document.getElementById("ai-modal-key-btn");
+    const keyBox = document.getElementById("ai-key-box");
+    const customKeyInput = document.getElementById("ai-custom-key-input");
+    const saveKeyBtn = document.getElementById("ai-save-key-btn");
     const modalInput = document.getElementById("ai-modal-input");
     const sendBtn = document.getElementById("ai-modal-send");
     const liveResponse = document.getElementById("ai-live-response");
     const liveText = document.getElementById("ai-live-text");
     const chatBody = document.getElementById("ai-chat-body");
     const chipBtns = document.querySelectorAll(".ai-chip-btn");
+
+    if (customKeyInput && localStorage.getItem('gemini_api_key')) {
+      customKeyInput.value = localStorage.getItem('gemini_api_key');
+    }
+
+    if (keyBtn && keyBox) {
+      keyBtn.addEventListener("click", () => {
+        keyBox.style.display = keyBox.style.display === "none" ? "block" : "none";
+      });
+    }
+
+    if (saveKeyBtn && customKeyInput) {
+      saveKeyBtn.addEventListener("click", () => {
+        const val = customKeyInput.value.trim();
+        if (val) {
+          localStorage.setItem('gemini_api_key', val);
+          alert('✦ API Key saved in your browser! Live Gemini AI ab direct chalega.');
+        } else {
+          localStorage.removeItem('gemini_api_key');
+          alert('✦ Custom key removed.');
+        }
+        keyBox.style.display = "none";
+      });
+    }
 
     function formatAIResponse(text) {
       if (!text) return "";
@@ -981,12 +1026,42 @@ document.addEventListener('keydown', function(e) {
 
       // Greetings & Small Talk
       if (lower.match(/^(hi|hello|hey|namaste|salam|kese ho|kaise ho|kya hal|kya haal|good morning|good evening|kem cho|wassup|yo)/i)) {
-        return `✦ **Namaste! Main aapka Smart AI Assistant hu.**\n\nMain badhiya hu! Aap mujhse **duniya ka koi bhi sawal** (General Knowledge, Science, Math, Coding, History, ya GMKDS Airport aur Aviation) pooch sakte hain. Main aapki kya madad karu?`;
+        return `✦ **Namaste! Main aapka Smart AI Assistant hu.**\n\nMain badhiya hu! Aap mujhse **duniya ka koi bhi sawal** (Aviation, Aircraft, Science, Math, Coding, History, ya GMKDS Airport) pooch sakte hain. Main aapki kya madad karu?`;
       }
 
       // Who are you / About AI
       if (lower.includes("kaun ho") || lower.includes("who are you") || lower.includes("about you") || lower.includes("tum kya ho") || lower.includes("kya kar sakte ho")) {
-        return `✦ **Main ek Smart Universal AI Assistant hu!**\n\n• **Main kya kar sakta hu?**:\n  - Science, Math, Coding (Python, JS, C++), History, GK ke accurate answers.\n  - Translations, Essay/Email writing, Reasoning aur calculations.\n  - GMKDS Airport Bhopal, Aviation, PAPI, ILS Navigation aur Team ke baare mein complete specialized guidance.\n\nBoliye, aap kya janna chahte hain?`;
+        return `✦ **Main ek Smart Universal AI Assistant hu!**\n\n• **Mera Kaam**:\n  - Aircraft (Airbus, Boeing), Aviation Engineering, PAPI, ILS Navigation.\n  - Science, Math, Coding (Python, JS, C++), History, GK ke accurate answers.\n  - GMKDS Airport Bhopal, Terminal operations aur Team guidance.\n\nBoliye, aap kya janna chahte hain?`;
+      }
+
+      // Airbus 320 / A320 / A320neo / Airbus family
+      if (lower.includes("airbus") || lower.includes("a320") || lower.includes("320") || lower.includes("a321") || lower.includes("a330") || lower.includes("a350") || lower.includes("a380")) {
+        return `✦ **Airbus A320 — Complete Overview & Technical Specs**:\n\n• **Type**: Commercial twin-engine, single-aisle (narrow-body) passenger jetliner manufactured by Airbus.\n• **Passenger Capacity**: 150 to 186 passengers (Standard 2-class / High Density economy).\n• **Pioneering Technology**: Pehla civil aircraft jisme fully digital **Fly-By-Wire (FBW)** flight control system aur Side-Stick controller introduce kiya gaya.\n• **Engines**: CFM International CFM56-5B / IAE V2500 (A320ceo) ya ultra-efficient CFM LEAP-1A / Pratt & Whitney PW1100G (A320neo).\n• **Performance**:\n  - **Cruising Speed**: Mach 0.78 (~828 km/h / 447 knots)\n  - **Max Altitude (Ceiling)**: 39,000 to 39,800 feet (FL390)\n  - **Range**: ~6,200 km (3,350 nautical miles) with Sharklets\n  - **Max Takeoff Weight (MTOW)**: ~77,000 to 79,000 kg\n• **Aviation in India**: IndiGo aur Air India ka sabse bada fleet A320/A320neo family par hi chalta hai jo Bhopal (BHO) se Delhi, Mumbai, Bengaluru connect karta hai.`;
+      }
+
+      // Boeing Aircraft (737, 777, 787, 747)
+      if (lower.includes("boeing") || lower.includes("737") || lower.includes("777") || lower.includes("787") || lower.includes("747") || lower.includes("dreamliner")) {
+        return `✦ **Boeing Commercial Aircraft Series**:\n\n• **Boeing 737**: World's most widely produced narrow-body jetliner. Twin-engine, seats 140-210 passengers, CFM56/LEAP-1B engines (Air India Express, SpiceJet operate karti hain).\n• **Boeing 787 Dreamliner**: Super-efficient wide-body long-haul jet (composite carbon-fiber fuselage, GEnx/Trent 1000 engines, range ~14,000 km).\n• **Boeing 777 (Triple Seven)**: World's largest twinjet long-range wide-body aircraft.\n• **Boeing 747 ('Queen of the Skies')**: Iconic 4-engine hump-backed jumbo jet.`;
+      }
+
+      // Black Box / Flight Recorder
+      if (lower.includes("black box") || lower.includes("blackbox") || lower.includes("fdr") || lower.includes("cvr") || lower.includes("flight recorder")) {
+        return `✦ **Black Box (Flight Data & Cockpit Voice Recorder)**:\n\n• Naam 'Black Box' hai par iska asli rang **Bright Orange** hota hai taaki crash ke baad aasani se mil sake.\n• **2 Main Components**:\n  1. **FDR (Flight Data Recorder)**: Aircraft ke 1000+ flight parameters (speed, altitude, pitch, engine thrust, flap position) record karta hai.\n  2. **CVR (Cockpit Voice Recorder)**: Pilots ki baatein, radio ATC communications aur cockpit background sounds record karta hai.\n• **Durability**: 1,100°C fire for 1 hour, 3,400g impact shock, aur 20,000 ft deep underwater pressure jhel sakta hai. Isme Underwater Locator Beacon (ULB) laga hota hai jo 30 din tak ultrasonic ping bhejta hai.`;
+      }
+
+      // Jet Engine / Turbofan / Propulsion
+      if (lower.includes("engine") || lower.includes("turbofan") || lower.includes("jet engine") || lower.includes("thrust") || lower.includes("turbine")) {
+        return `✦ **Aviation Jet Engine (Turbofan) Working Principle**:\n\nJet engine Newton ke Third Law (*Every action has an equal and opposite reaction*) par kaam karta hai:\n\n1. **Intake (Fan)**: Titanium blades hawa ko andar kheenchti hain. Zyadatar hawa core ke bahar se nikal kar **Bypass Thrust** banati hai.\n2. **Compression**: Multi-stage compressor hawa ke pressure ko 30-40 guna badha deta hai.\n3. **Combustion**: High-pressure air mein Aviation Turbine Fuel (ATF/Jet-A1) spray karke ignite kiya jata hai (temperatures > 1700°C).\n4. **Turbine & Exhaust**: Expanding hot gases turbine ko ghumati hain aur exhaust nozzle se high velocity par bahar nikal kar aircraft ko **Thrust (Forward Push)** deti hain.`;
+      }
+
+      // Four Forces of Flight / Aerodynamics / Lift
+      if (lower.includes("lift") || lower.includes("drag") || lower.includes("aerodynamic") || lower.includes("four forces") || lower.includes("how plane fly") || lower.includes("plane kaise udta")) {
+        return `✦ **Aircraft Aerodynamics & The 4 Forces of Flight**:\n\nPlane hawa mein 4 forces ke balance se udta hai:\n\n1. **Lift (Upward)**: Wings ke special curved shape (**Airfoil**) aur Bernoulli's Principle + Newton's 3rd Law se banta hai. Upar low pressure aur neeche high pressure banta hai jo plane ko uthata hai.\n2. **Weight / Gravity (Downward)**: Plane ka total wazan jo use zameen ki taraf kheenchta hai.\n3. **Thrust (Forward)**: Jet engines dwara aage badhane wali power.\n4. **Drag (Backward)**: Hawa ka friction jo aage badhne ka virodh karta hai.\n\n*Cruising flight mein: Lift = Weight aur Thrust = Drag hota hai.*`;
+      }
+
+      // ATC / Transponder / Squawk Codes
+      if (lower.includes("transponder") || lower.includes("squawk") || lower.includes("atc") || lower.includes("air traffic control")) {
+        return `✦ **ATC & Transponder Emergency Squawk Codes**:\n\nAircraft ka transponder 4-digit code emit karta hai jo radar screen par flight identity batata hai:\n\n• **Squawk 7500**: Aircraft Hijacking / Unlawful Interference\n• **Squawk 7600**: Radio Communication Failure (Lost Comms)\n• **Squawk 7700**: General In-flight Emergency (Mayday)\n• **Standard VFR Code**: 1200 / 7000 (standard visual flights)`;
       }
 
       // Creator / Majid / Ansari Studios
@@ -1036,7 +1111,7 @@ document.addEventListener('keydown', function(e) {
 
       // Coding / Programming Queries
       if (lower.includes("python") || lower.includes("javascript") || lower.includes("code") || lower.includes("program") || lower.includes("html") || lower.includes("css") || lower.includes("c++") || lower.includes("java") || lower.includes("react")) {
-        return `✦ **Programming & Technology Assistant**:\n\nAapka sawal: *"${q}"*\n\nProgramming aur coding ke sabhi sawalon ke detailed answers aur code snippets ke liye Gemini AI engine connect ho raha hai. Agar aap specific code chahte hain (jaise Fibonacci, Palindrome, React Component, API fetch), toh aap seedhe prompt karein!`;
+        return `✦ **Programming & Technology Guide**:\n\nAapka sawal: *"${q}"*\n\n• **Python Example (Prime Check)**:\n\`\`\`python\ndef is_prime(n):\n    if n <= 1:\n        return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return False\n    return True\nprint(is_prime(29)) # Output: True\n\`\`\`\n• Kisi specific algorithm ya language ke code ke liye aap direct topic type karein!`;
       }
 
       // Weather / METAR / Climate
@@ -1064,13 +1139,35 @@ document.addEventListener('keydown', function(e) {
         return `✦ **Institute of Aeronautics & Engineering (I.A.E. Bhopal)**:\n\n• I.A.E. Bhopal premier aviation institute hai jo DGCA approved Aircraft Maintenance Engineering (AME) aur cutting-edge aerospace engineering training provide karta hai.\n• GMKDS Airport project I.A.E. Bhopal ke talented engineers dwara conceptualize aur design kiya gaya hai.`;
       }
 
-      // Location / Address
-      if (lower.includes("location") || lower.includes("kaha hai") || lower.includes("address") || lower.includes("kahan") || lower.includes("city")) {
-        return `✦ **GMKDS Airport Location**:\n\n• **City**: Bhopal, Madhya Pradesh, India\n• **Coordinates**: Near Raja Bhoj International Aviation Corridor\n• **Connectivity**: VIP Road aur Airport Bypass se well-connected (24/7 Cab & Shuttle service available).`;
-      }
-
       // General Question Smart Response
-      return `✦ **Smart AI Response**\n\nAapka sawal: *"${q}"*\n\nMain ek universal smart AI hu jo General Knowledge, Science, Math, Programming, History, aur Aviation/Airport ke sabhi sawalon ke accurate aur detailed answers deta hu. Agar aapko kisi specific topic par explanation ya code chahiye, toh kripya thoda aur detail mein poochiye!`;
+      return `✦ **Smart AI Response**\n\nAapka sawal: *"${q}"*\n\nMain ek universal intelligent assistant hu. Live internet aur open-domain query search ke liye aap Netlify Environment Variables mein \`GEMINI_API_KEY\` add kar sakte hain, ya mujhse **Airbus A320, Boeing 737, PAPI, ILS, Jet Engines, Black Box, Weather, Team Majid ya Science/Math** ke baare mein pooch sakte hain!`;
+    }
+
+    // Direct Client-Side Gemini Fallback (Calls REST API if API Key is configured in LocalStorage or window)
+    async function callDirectClientGemini(query, key) {
+      if (!key) return null;
+      try {
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+        const payload = {
+          contents: [{ role: 'user', parts: [{ text: query }] }],
+          systemInstruction: {
+            parts: [{ text: "You are an intelligent universal AI assistant for GMKDS Airport Bhopal. Answer any query (General Knowledge, Science, Math, Coding, Aviation, Aircraft, Airport) accurately, politely, and formatted in clean markdown." }]
+          },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+        };
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const data = await res.json();
+          return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+        }
+      } catch (err) {
+        console.warn("Direct client Gemini call error:", err);
+      }
+      return null;
     }
 
     function appendMessage(sender, text, isHtml = false, isTemp = false) {
@@ -1116,54 +1213,69 @@ document.addEventListener('keydown', function(e) {
 
       let finalAnswer = "";
 
-      // 3. Fetch from Server (with 18-second generous timeout for Gemini)
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 18000);
-
-        let res = null;
+      // 3. Try Direct Client-side Gemini if user configured key
+      const storedKey = localStorage.getItem('gemini_api_key');
+      if (storedKey) {
         try {
-          res = await fetch("/api/ai-search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query }),
-            signal: controller.signal
-          });
+          const directAns = await callDirectClientGemini(query, storedKey);
+          if (directAns) {
+            finalAnswer = directAns;
+          }
         } catch (e) {
-          console.warn("Express API failed, trying Netlify function...", e);
+          console.warn("Direct client Gemini failed:", e);
         }
+      }
 
-        if (!res || !res.ok) {
+      // 4. Fetch from Server / Netlify Function if not answered yet
+      if (!finalAnswer) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+          let res = null;
           try {
-            res = await fetch("/.netlify/functions/ai-search", {
+            res = await fetch("/api/ai-search", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ query }),
               signal: controller.signal
             });
           } catch (e) {
-            console.warn("Netlify function fetch error:", e);
+            console.warn("Express API failed, trying Netlify function...", e);
           }
-        }
 
-        clearTimeout(timeoutId);
-
-        if (res && res.ok) {
-          const data = await res.json();
-          if (data && data.answer) {
-            finalAnswer = data.answer;
+          if (!res || !res.ok) {
+            try {
+              res = await fetch("/.netlify/functions/ai-search", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query }),
+                signal: controller.signal
+              });
+            } catch (e) {
+              console.warn("Netlify function fetch error:", e);
+            }
           }
+
+          clearTimeout(timeoutId);
+
+          if (res && res.ok) {
+            const data = await res.json();
+            if (data && data.answer && !data.fallback) {
+              finalAnswer = data.answer;
+            }
+          }
+        } catch (err) {
+          console.warn("Network or server AI error:", err);
         }
-      } catch (err) {
-        console.warn("Network or server AI error:", err);
       }
 
-      // 4. If remote answer not found (offline/no network), use smart local engine
+      // 5. If remote answer not found (offline/no network), use smart local engine
       if (!finalAnswer) {
         finalAnswer = getLocalSmartAnswer(query);
       }
 
-      // 5. Update AI Bubble with Final Formatted Answer
+      // 6. Update AI Bubble with Final Formatted Answer
       if (loadingBubble) {
         loadingBubble.className = "";
         loadingBubble.innerHTML = formatAIResponse(finalAnswer);
