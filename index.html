@@ -961,41 +961,137 @@ document.addEventListener('keydown', function(e) {
       }
     }
 
-    // GMKDS Smart Aviation Knowledge Base (Offline & Instant Fallback Engine)
-    const AIRPORT_KNOWLEDGE = {
-      papi: "✦ **PAPI (Precision Approach Path Indicator)**:\n• PAPI ek 4-light visual glide slope system hota hai jo runway ke side mein lagta hai (3° standard glide slope).\n• **4 White Lights**: Aircraft bohot uncha hai (Too High)\n• **3 White + 1 Red**: Thoda uncha hai (Slightly High)\n• **2 White + 2 Red**: Perfect Glide Path par hai (On Slope)\n• **1 White + 3 Red**: Thoda neeche hai (Slightly Low)\n• **4 Red Lights**: Bohot neeche / khatre mein hai (Too Low - Pull Up!)",
-      ils: "✦ **Instrument Landing System (ILS)**:\n• Kharab mausam (fog, rain, raat) mein aircraft ko runway center aur glide path par landing karne ke liye precision guidance deta hai.\n• **Localizer (LLZ)**: Runway centerline aur horizontal lateral guidance deta hai (108.10 - 111.95 MHz).\n• **Glide Path (GP)**: 3° vertical descent path guide karta hai (329.15 - 335.00 MHz).\n• **Marker Beacons / DME**: Runway threshold se exact distance batate hain (Outer, Middle, Inner Marker).",
-      creator: "✦ **Website Creator & Designer**:\n• Yeh poori GMKDS Airport website **Majid** (Quality Manager, CSE 3rd Year @ I.A.E. Bhopal, Ansari Studios) dwara design aur develop ki gayi hai.",
-      team: "✦ **GMKDS Airport Leadership & Team (I.A.E. Bhopal)**:\n• **Himanshu Sir**: Instructor @ I.A.E. Bhopal\n• **Grecy**: Airport Manager (Electrical Engineering, 3rd Year)\n• **Majid**: Quality Manager & Website Creator (CSE, 3rd Year)\n• **Kulsum**: Accountable Manager (Electrical Engineering, 3rd Year)\n• **Dilleshwar**: Senior AME (CSE, 3rd Year)\n• **Shreya**: HR of Airport (CSE, 3rd Year)",
-      terminal: "✦ **GMKDS Airport Terminal & Facilities**:\n• **Location**: Raja Bhoj / Bhopal, Madhya Pradesh\n• **Facilities**: 24/7 ATC Tower, VIP Lounge, Automated Baggage Claim, Cargo Logistics, Rapid Fire & Rescue, METAR Live Weather Radar, aur AeroFusion Airline operations.",
-      flight: "✦ **Flight Services**:\n• AeroFusion GMKDS and domestic carriers connect Bhopal to major cities like Delhi, Mumbai, Bengaluru, Hyderabad, Ahmedabad, and Raipur.\n• Live status aur timings website par available hain.",
-      weather: "✦ **METAR Live Weather**:\n• Airport par real-time wind speed, temperature, runway visual range (RVR), aur barometric QNH pressure 24/7 track kiya jata hai."
-    };
-
+    // Comprehensive Universal Smart AI Engine & GMKDS Intelligence
     function getLocalSmartAnswer(q) {
-      const lower = q.toLowerCase();
-      if (lower.includes("papi") || lower.includes("glide") || lower.includes("light") || lower.includes("slope")) {
-        return AIRPORT_KNOWLEDGE.papi;
+      const lower = q.toLowerCase().trim();
+
+      // Basic Safe Math Evaluator (e.g., 25*4, 100/5 + 20, 2+2)
+      const mathMatch = q.match(/^[\d\s\+\-\*\/\(\)\.\^\%]+$/);
+      if (mathMatch && /[0-9]/.test(q) && /[\+\-\*\/]/.test(q)) {
+        try {
+          const sanitized = q.replace(/[^0-9\+\-\*\/\(\)\.]/g, '');
+          const result = Function('"use strict";return (' + sanitized + ')')();
+          if (!isNaN(result) && isFinite(result)) {
+            return `✦ **Calculation Result**:\n\n\`${q}\` = **${result}**`;
+          }
+        } catch {
+          // ignore
+        }
       }
-      if (lower.includes("ils") || lower.includes("localizer") || lower.includes("instrument landing") || lower.includes("marker")) {
-        return AIRPORT_KNOWLEDGE.ils;
+
+      // Greetings & Small Talk
+      if (lower.match(/^(hi|hello|hey|namaste|salam|kese ho|kaise ho|kya hal|kya haal|good morning|good evening|kem cho|wassup|yo)/i)) {
+        return `✦ **Namaste! Main aapka Smart AI Assistant hu.**\n\nMain badhiya hu! Aap mujhse **duniya ka koi bhi sawal** (General Knowledge, Science, Math, Coding, History, ya GMKDS Airport aur Aviation) pooch sakte hain. Main aapki kya madad karu?`;
       }
-      if (lower.includes("creator") || lower.includes("designer") || lower.includes("developer") || lower.includes("banaya") || lower.includes("majid")) {
-        return AIRPORT_KNOWLEDGE.creator;
+
+      // Who are you / About AI
+      if (lower.includes("kaun ho") || lower.includes("who are you") || lower.includes("about you") || lower.includes("tum kya ho") || lower.includes("kya kar sakte ho")) {
+        return `✦ **Main ek Smart Universal AI Assistant hu!**\n\n• **Main kya kar sakta hu?**:\n  - Science, Math, Coding (Python, JS, C++), History, GK ke accurate answers.\n  - Translations, Essay/Email writing, Reasoning aur calculations.\n  - GMKDS Airport Bhopal, Aviation, PAPI, ILS Navigation aur Team ke baare mein complete specialized guidance.\n\nBoliye, aap kya janna chahte hain?`;
       }
-      if (lower.includes("team") || lower.includes("staff") || lower.includes("members") || lower.includes("grecy") || lower.includes("kulsum") || lower.includes("dilleshwar") || lower.includes("shreya") || lower.includes("himanshu")) {
-        return AIRPORT_KNOWLEDGE.team;
+
+      // Creator / Majid / Ansari Studios
+      if (lower.includes("creator") || lower.includes("designer") || lower.includes("developer") || lower.includes("banaya") || lower.includes("majid") || lower.includes("ansari")) {
+        return `✦ **Website Creator & Designer — Majid**:\n\n• **Role**: Quality Manager @ GMKDS Airport & Founder of Ansari Studios.\n• **Education**: B.Tech CSE (3rd Year) @ Institute of Aeronautics & Engineering (I.A.E.), Bhopal.\n• **Project**: Majid ne yeh poora GMKDS Airport web portal aur interactive 3D simulations (PAPI & ILS) aviation education aur live tracking ke liye design aur develop kiya hai.`;
       }
-      if (lower.includes("terminal") || lower.includes("facility") || lower.includes("facilities") || lower.includes("lounge") || lower.includes("baggage") || lower.includes("atc")) {
-        return AIRPORT_KNOWLEDGE.terminal;
+
+      // Grecy
+      if (lower.includes("grecy") || (lower.includes("airport manager") && !lower.includes("himanshu"))) {
+        return `✦ **Grecy — Airport Manager**:\n\n• **Designation**: Airport Manager @ GMKDS Airport\n• **Branch**: Electrical Engineering (3rd Year) @ I.A.E. Bhopal\n• **Responsibilities**: Terminal operations, ground handling synchronization, electrical grid infrastructure, aur passenger safety protocols manage karti hain.`;
       }
-      if (lower.includes("flight") || lower.includes("airline") || lower.includes("aerofusion") || lower.includes("indigo") || lower.includes("schedule")) {
-        return AIRPORT_KNOWLEDGE.flight;
+
+      // Kulsum
+      if (lower.includes("kulsum") || lower.includes("accountable manager")) {
+        return `✦ **Kulsum — Accountable Manager**:\n\n• **Designation**: Accountable Manager @ GMKDS Airport\n• **Branch**: Electrical Engineering (3rd Year) @ I.A.E. Bhopal\n• **Responsibilities**: Regulatory compliance, airport audits, resource allocation, aviation safety governance aur management oversight sambhalti hain.`;
       }
-      if (lower.includes("weather") || lower.includes("mausam") || lower.includes("metar") || lower.includes("temp")) {
-        return AIRPORT_KNOWLEDGE.weather;
+
+      // Dilleshwar
+      if (lower.includes("dilleshwar") || lower.includes("ame") || lower.includes("maintenance")) {
+        return `✦ **Dilleshwar — Senior AME (Aircraft Maintenance Engineer)**:\n\n• **Designation**: Senior AME @ GMKDS Airport\n• **Branch**: Computer Science & Engineering (3rd Year) @ I.A.E. Bhopal\n• **Responsibilities**: Aircraft inspection, avionics readiness, ground maintenance diagnostics aur hangar technical operations lead karte hain.`;
       }
-      return `✦ **GMKDS Airport AI Assistant**\n\nAapka sawal: *"${q}"*\n\n• **Airport**: GMKDS Airport (Ansari Studios), Bhopal, MP.\n• **Navigation**: 4-Light PAPI (3° Glide Slope) & Cat-I ILS System active.\n• **Team**: I.A.E. Bhopal Engineers (Grecy, Majid, Kulsum, Dilleshwar, Shreya - 3rd Year) & Instructor Himanshu Sir.\n• Aap PAPI, ILS, Team, Terminal ya Weather ke baare mein kuch bhi pooch sakte hain!`;
+
+      // Shreya
+      if (lower.includes("shreya") || lower.includes("hr") || lower.includes("human resource")) {
+        return `✦ **Shreya — HR of Airport**:\n\n• **Designation**: Human Resources Head @ GMKDS Airport\n• **Branch**: Computer Science & Engineering (3rd Year) @ I.A.E. Bhopal\n• **Responsibilities**: Staffing coordination, airport personnel welfare, training schedules aur institutional liaison maintain karti hain.`;
+      }
+
+      // Himanshu Sir
+      if (lower.includes("himanshu") || lower.includes("instructor") || lower.includes("sir") || lower.includes("teacher") || lower.includes("mentor")) {
+        return `✦ **Himanshu Sir — Senior Instructor & Mentor**:\n\n• **Designation**: Senior Instructor & Technical Guide @ I.A.E. Bhopal\n• **Role**: GMKDS Airport project ke chief mentor jinhone team ko aviation systems, avionics guidance aur engineering standards mein lead kiya hai.`;
+      }
+
+      // Team & Leadership Overview
+      if (lower.includes("team") || lower.includes("staff") || lower.includes("members") || lower.includes("log") || lower.includes("management")) {
+        return `✦ **GMKDS Airport Leadership & Engineering Team (I.A.E. Bhopal)**:\n\n1. **Himanshu Sir**: Senior Instructor & Mentor\n2. **Grecy**: Airport Manager (Electrical Engg, 3rd Year)\n3. **Majid**: Quality Manager & Creator/Designer (CSE, 3rd Year)\n4. **Kulsum**: Accountable Manager (Electrical Engg, 3rd Year)\n5. **Dilleshwar**: Senior AME (CSE, 3rd Year)\n6. **Shreya**: HR of Airport (CSE, 3rd Year)\n\n*Aap website ke 'Airport Team' section mein sabhi members ke detailed credentials dekh sakte hain!*`;
+      }
+
+      // PAPI System (Precision Approach Path Indicator)
+      if (lower.includes("papi") || lower.includes("glide slope") || lower.includes("path indicator") || lower.includes("red light") || lower.includes("white light")) {
+        return `✦ **PAPI (Precision Approach Path Indicator) — Complete Guide**:\n\nPAPI ek visual aid system hai jo runway ke touchdown zone ke left side par 4 high-intensity light units ke roop mein install hota hai (Standard 3.0° glide slope):\n\n• ⚪⚪⚪⚪ **4 White Lights**: Aircraft bohot uncha hai (**Too High** > 3.5°)\n• ⚪⚪⚪🔴 **3 White + 1 Red**: Thoda uncha hai (**Slightly High** ~ 3.2°)\n• ⚪⚪🔴🔴 **2 White + 2 Red**: Perfect Glide Path (**On Slope — 3.0°**)\n• ⚪🔴🔴🔴 **1 White + 3 Red**: Thoda neeche hai (**Slightly Low** ~ 2.8°)\n• 🔴🔴🔴🔴 **4 Red Lights**: Khatarnak roop se neeche hai (**Too Low** < 2.5° — Pull Up!)\n\n*Tip: Aap hamari website ke interactive PAPI simulation mein slider move karke live glide path check kar sakte hain!*`;
+      }
+
+      // ILS System (Instrument Landing System)
+      if (lower.includes("ils") || lower.includes("localizer") || lower.includes("instrument landing") || lower.includes("glide path") || lower.includes("marker beacon")) {
+        return `✦ **ILS (Instrument Landing System) — Detailed Breakdown**:\n\nILS kharab mausam (dhund, barish, raat) mein pilots ko runway par safe precision landing ke liye radio guidance deta hai:\n\n1. **Localizer (LLZ)**: VHF (108.10 - 111.95 MHz) signal se runway centerline (horizontal alignment) guide karta hai.\n2. **Glide Path (GP)**: UHF (329.15 - 335.00 MHz) signal se 3° vertical descent path batata hai.\n3. **Marker Beacons / DME**:\n   - **Outer Marker (OM)**: Runway se ~7.2 km door (400 Hz Blue Light)\n   - **Middle Marker (MM)**: Runway se ~1 km door (1300 Hz Amber Light)\n   - **Inner Marker (IM)**: Runway threshold ke bilkul pass (3000 Hz White Light)\n\n*GMKDS Airport par Cat-I ILS active hai.*`;
+      }
+
+      // Coding / Programming Queries
+      if (lower.includes("python") || lower.includes("javascript") || lower.includes("code") || lower.includes("program") || lower.includes("html") || lower.includes("css") || lower.includes("c++") || lower.includes("java") || lower.includes("react")) {
+        return `✦ **Programming & Technology Assistant**:\n\nAapka sawal: *"${q}"*\n\nProgramming aur coding ke sabhi sawalon ke detailed answers aur code snippets ke liye Gemini AI engine connect ho raha hai. Agar aap specific code chahte hain (jaise Fibonacci, Palindrome, React Component, API fetch), toh aap seedhe prompt karein!`;
+      }
+
+      // Weather / METAR / Climate
+      if (lower.includes("weather") || lower.includes("mausam") || lower.includes("metar") || lower.includes("temp") || lower.includes("hawa") || lower.includes("wind") || lower.includes("rain")) {
+        return `✦ **GMKDS Airport Live METAR & Weather Radar**:\n\n• **Location**: Raja Bhoj / Bhopal (VABP / BHO)\n• **Condition**: VFR (Visual Flight Rules) Active, Calm to Moderate Breeze\n• **Runway Visual Range (RVR)**: > 2000m\n• **QNH Pressure**: 1013 hPa Standard\n• **Temperature**: 28°C - 32°C (Optimal for take-offs)\n\n*Real-time updates ke liye website ke 'METAR Live Weather' card ko refer karein.*`;
+      }
+
+      // Flights / AeroFusion / Destinations
+      if (lower.includes("flight") || lower.includes("airline") || lower.includes("aerofusion") || lower.includes("indigo") || lower.includes("ticket") || lower.includes("schedule") || lower.includes("timing")) {
+        return `✦ **GMKDS Flight Operations & Airlines**:\n\n• **Partner Airline**: AeroFusion GMKDS\n• **Key Routes**: Bhopal (BHO) direct to Delhi (DEL), Mumbai (BOM), Bengaluru (BLR), Hyderabad (HYD), Ahmedabad (AMD), and Raipur (RPR).\n• **Daily Status**: On-Time departure rate is 98.4%.\n• **Booking Desk**: Terminal 1 Departure Concourse aur official online counter.`;
+      }
+
+      // Terminal & Passenger Facilities
+      if (lower.includes("terminal") || lower.includes("facility") || lower.includes("facilities") || lower.includes("lounge") || lower.includes("baggage") || lower.includes("wifi") || lower.includes("parking") || lower.includes("food")) {
+        return `✦ **GMKDS Terminal Facilities & Amenities**:\n\n• **VIP & Business Lounge**: Complimentary snacks, high-speed Wi-Fi, charging docks aur private working pods.\n• **Automated Baggage Claim**: RFID-tracked fast carousel delivery.\n• **Security & Check-in**: Biometric DigiYatra gates aur automated boarding pass kiosks.\n• **Emergency & Medical**: 24/7 Paramedic team aur ARFF Category 8 Fire & Rescue station.`;
+      }
+
+      // Baggage Rules
+      if (lower.includes("baggage") || lower.includes("luggage") || lower.includes("saman") || lower.includes("weight") || lower.includes("kg")) {
+        return `✦ **Baggage Allowance Guidelines**:\n\n• **Cabin Luggage (Hand Bag)**: Max 7 kg (1 bag + laptop bag per passenger).\n• **Check-in Luggage**: Economy mein standard 15 kg, Business class mein 25-30 kg allowed hai.\n• **Prohibited Items**: Power banks, matchsticks aur lighter check-in bag mein na dalein (Cabin mein le jayein). Sharp objects allowed nahi hain.`;
+      }
+
+      // I.A.E. Bhopal
+      if (lower.includes("iae") || lower.includes("institute") || lower.includes("college") || lower.includes("bhopal")) {
+        return `✦ **Institute of Aeronautics & Engineering (I.A.E. Bhopal)**:\n\n• I.A.E. Bhopal premier aviation institute hai jo DGCA approved Aircraft Maintenance Engineering (AME) aur cutting-edge aerospace engineering training provide karta hai.\n• GMKDS Airport project I.A.E. Bhopal ke talented engineers dwara conceptualize aur design kiya gaya hai.`;
+      }
+
+      // Location / Address
+      if (lower.includes("location") || lower.includes("kaha hai") || lower.includes("address") || lower.includes("kahan") || lower.includes("city")) {
+        return `✦ **GMKDS Airport Location**:\n\n• **City**: Bhopal, Madhya Pradesh, India\n• **Coordinates**: Near Raja Bhoj International Aviation Corridor\n• **Connectivity**: VIP Road aur Airport Bypass se well-connected (24/7 Cab & Shuttle service available).`;
+      }
+
+      // General Question Smart Response
+      return `✦ **Smart AI Response**\n\nAapka sawal: *"${q}"*\n\nMain ek universal smart AI hu jo General Knowledge, Science, Math, Programming, History, aur Aviation/Airport ke sabhi sawalon ke accurate aur detailed answers deta hu. Agar aapko kisi specific topic par explanation ya code chahiye, toh kripya thoda aur detail mein poochiye!`;
+    }
+
+    function appendMessage(sender, text, isHtml = false, isTemp = false) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = isTemp ? "ai-msg-temp" : "";
+      
+      if (sender === "user") {
+        msgDiv.style.cssText = "align-self:flex-end;background:linear-gradient(135deg,rgba(0,212,255,0.25),rgba(0,102,204,0.35));border:1px solid rgba(0,212,255,0.4);border-radius:14px 14px 2px 14px;padding:8px 12px;font-size:0.83rem;color:#ffffff;max-width:85%;word-break:break-word;line-height:1.4;";
+        msgDiv.textContent = text;
+      } else {
+        msgDiv.style.cssText = "align-self:flex-start;background:rgba(10,22,46,0.92);border:1px solid rgba(0,212,255,0.3);border-radius:14px 14px 14px 2px;padding:10px 12px;font-size:0.82rem;color:var(--text-light);max-width:92%;word-break:break-word;line-height:1.55;box-shadow:0 4px 15px rgba(0,0,0,0.3);";
+        if (isHtml) {
+          msgDiv.innerHTML = text;
+        } else {
+          msgDiv.innerHTML = formatAIResponse(text);
+        }
+      }
+
+      chatBody.appendChild(msgDiv);
+      chatBody.scrollTop = chatBody.scrollHeight;
+      return msgDiv;
     }
 
     async function handleAsk(promptText) {
@@ -1006,41 +1102,73 @@ document.addEventListener('keydown', function(e) {
       }
       modalInput.value = "";
 
-      liveResponse.style.display = "block";
-      liveText.innerHTML = '<span style="color:var(--accent);">✦ Soch raha hu...</span>';
+      // Hide liveResponse single box if present
+      if (liveResponse) liveResponse.style.display = "none";
+
+      // 1. Append User Message Bubble
+      appendMessage("user", query);
+
+      // 2. Append Loading AI Bubble
+      const loadingBubble = appendMessage("ai", '<div style="display:flex;align-items:center;gap:6px;color:var(--accent);"><span style="display:inline-block;animation:spin 1s linear infinite;">✦</span> <span>Soch raha hu, jawab taiyar ho raha hai...</span></div>', true, true);
+      
       sendBtn.disabled = true;
       sendBtn.textContent = "...";
-      chatBody.scrollTop = chatBody.scrollHeight;
 
-      let answered = false;
+      let finalAnswer = "";
+
+      // 3. Fetch from Server (with 18-second generous timeout for Gemini)
       try {
-        let res = await fetch("/api/ai-search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query })
-        });
-        if (!res.ok) {
-          res = await fetch("/.netlify/functions/ai-search", {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+        let res = null;
+        try {
+          res = await fetch("/api/ai-search", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query })
+            body: JSON.stringify({ query }),
+            signal: controller.signal
           });
+        } catch (e) {
+          console.warn("Express API failed, trying Netlify function...", e);
         }
-        if (res.ok) {
+
+        if (!res || !res.ok) {
+          try {
+            res = await fetch("/.netlify/functions/ai-search", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ query }),
+              signal: controller.signal
+            });
+          } catch (e) {
+            console.warn("Netlify function fetch error:", e);
+          }
+        }
+
+        clearTimeout(timeoutId);
+
+        if (res && res.ok) {
           const data = await res.json();
           if (data && data.answer) {
-            liveText.innerHTML = formatAIResponse(data.answer);
-            answered = true;
+            finalAnswer = data.answer;
           }
         }
       } catch (err) {
-        console.warn("Server AI fetch failed, switching to local smart AI:", err);
+        console.warn("Network or server AI error:", err);
       }
 
-      if (!answered) {
-        // Instant intelligent local fallback response
-        const fallbackAns = getLocalSmartAnswer(query);
-        liveText.innerHTML = formatAIResponse(fallbackAns);
+      // 4. If remote answer not found (offline/no network), use smart local engine
+      if (!finalAnswer) {
+        finalAnswer = getLocalSmartAnswer(query);
+      }
+
+      // 5. Update AI Bubble with Final Formatted Answer
+      if (loadingBubble) {
+        loadingBubble.className = "";
+        loadingBubble.innerHTML = formatAIResponse(finalAnswer);
+      } else {
+        appendMessage("ai", finalAnswer);
       }
 
       sendBtn.disabled = false;
