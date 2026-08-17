@@ -577,79 +577,160 @@
     }
 
     /* IMPROVED MOBILE STYLES */
+    @media(max-width:768px){
+      nav { padding: 0.65rem 1rem; }
+      .nav-logo { font-size: 1.05rem; letter-spacing: 1px; }
+      .nav-logo img { height: 28px !important; margin-right: 6px !important; }
+      .nav-menu-btn { padding: 0.35rem 0.75rem; font-size: 0.72rem; letter-spacing: 1px; }
+      .nav-links, .nav-badge, nav > .language-switcher { display: none; }
+      .weather-card { grid-template-columns: 1fr; }
+      .gal-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+      .gal-item:first-child { grid-row: auto; }
+      footer { flex-direction: column; text-align: center; }
+    }
+
     @media(max-width:600px){
-      /* Hero */
-      .hero { padding: 5rem 1.2rem 3rem; }
-      .hero-logo-img { width: 150px; height: 150px; }
-      .hero-eyebrow { font-size:0.65rem; letter-spacing:3px; }
-      .hero-desc { font-size:0.92rem; }
-      .hero-btns { flex-direction:column; align-items:center; }
-      .hero-btns a { width:100%; max-width:280px; text-align:center; }
+      /* Splash Screen */
+      .splash-logo { width: 120px !important; height: 120px !important; margin-bottom: 1rem !important; }
+      .splash-title { font-size: 1.4rem !important; letter-spacing: 2px !important; }
+      .splash-sub { font-size: 0.7rem !important; letter-spacing: 3px !important; margin-bottom: 1.5rem !important; }
+      .splash-bar-wrap { width: 180px !important; height: 3px !important; }
 
-      /* Wrap padding */
-      .wrap { padding: 3rem 1rem; }
-
-      /* Section title */
-      .section-title { font-size: clamp(1.6rem,7vw,2.5rem) !important; }
-
-      /* Staff grid — 2 columns on mobile */
-      .staff-grid { grid-template-columns: repeat(2,1fr); gap:1rem; }
-      .staff-card { padding: 1.2rem 0.8rem; }
-      .staff-av { width:50px; height:50px; font-size:1.2rem; }
-      .staff-name { font-size:0.75rem; }
-      .staff-role { font-size:0.62rem; }
-      .staff-card-vip { max-width:100%; grid-column:1/-1; }
-
-      /* ILS canvas */
-      #ilsCanvas { height: 220px !important; }
-      #papiCanvas { height: 220px !important; }
-      .ils-legend { gap:0.5rem; }
-      .ils-legend-item { font-size:0.72rem; }
-
-      /* PAPI dots */
-      .pd { width:16px; height:16px; }
-      .papi-lights-row { gap:0.5rem; padding:0.6rem 0.7rem; }
-      .papi-label { font-size:0.75rem; }
-      .papi-status { font-size:0.65rem; padding:0.15rem 0.5rem; }
-
-      /* ILS cards */
-      .ils-grid { grid-template-columns:1fr; }
-      .ils-card { padding:1.2rem; }
-      .mobile-menu .language-switcher { display:flex; }
-
-      /* Gallery */
-      .gal-grid { grid-template-columns:1fr; grid-template-rows:auto; }
-
-      /* Contact */
-      .con-grid { grid-template-columns:1fr; }
-
-      /* Footer */
-      footer { padding:1.5rem 1rem; }
-
-      /* Feedback */
-      .feedback-card { padding:1.5rem 1rem; }
-
-      /* Team modal */
-      .team-modal { padding:1.5rem 1rem; max-width:95vw; }
-      .modal-av { width:60px; height:60px; font-size:1.5rem; }
-      .modal-name { font-size:1.05rem; }
-      .modal-info-text { font-size:0.82rem; }
-
-      /* Announcement card */
-      .ann-card { flex-direction:column; text-align:center; gap:0.8rem; }
-
-      /* Tables */
-      .tbl-wrap { font-size:0.8rem; }
-      table th, table td { padding:0.5rem 0.7rem; }
+      /* Top / Hero Section */
+      .hero {
+        min-height: auto;
+        padding: 4.8rem 1rem 2rem;
+      }
+      .hero-logo-wrap {
+        margin-bottom: 0.75rem;
+      }
+      .hero-logo-img {
+        width: 105px !important;
+        height: 105px !important;
+        border-radius: 16px;
+        filter: drop-shadow(0 0 15px rgba(0,212,255,0.4));
+      }
+      .hero-eyebrow {
+        font-size: 0.62rem !important;
+        letter-spacing: 2px !important;
+        margin-bottom: 0.5rem !important;
+      }
+      .hero-title {
+        font-size: clamp(1.75rem, 7.5vw, 2.5rem) !important;
+        line-height: 1.15 !important;
+        letter-spacing: 1px !important;
+        margin-bottom: 0.25rem !important;
+      }
+      .hero-sub {
+        font-size: 0.75rem !important;
+        letter-spacing: 3px !important;
+        margin-bottom: 0.9rem !important;
+      }
+      .hero-desc {
+        font-size: 0.85rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 1.4rem !important;
+        max-width: 95% !important;
+      }
+      .hero-btns {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.6rem !important;
+        justify-content: center !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
+      }
+      .hero-btns a, .btn-p, .btn-s {
+        padding: 0.65rem 1.3rem !important;
+        font-size: 0.82rem !important;
+        letter-spacing: 0.5px !important;
+        width: auto !important;
+        max-width: none !important;
+        box-shadow: 0 4px 15px var(--glow-red);
+      }
+      .scroll-ind {
+        display: none !important;
+      }
 
       /* Ticker */
-      .ticker-item { font-size:0.72rem; padding:0 1rem; }
+      .ticker-wrap { padding: 0.45rem 0 !important; }
+      .ticker-label { padding: 0 0.8rem !important; font-size: 0.62rem !important; letter-spacing: 1px !important; }
+      .ticker-track { padding-left: 110px !important; }
+      .ticker-item { font-size: 0.75rem !important; padding: 0 1.2rem !important; }
+
+      /* Clock strip */
+      .clock-strip { padding: 1.5rem 1rem !important; }
+      .clock-time { font-size: clamp(2rem, 8vw, 3.2rem) !important; letter-spacing: 2px !important; }
+      .clock-loc { font-size: 0.62rem !important; letter-spacing: 2px !important; }
+      .clock-date { font-size: 0.78rem !important; letter-spacing: 1.5px !important; }
+
+      /* Wrap padding */
+      .wrap { padding: 2.5rem 1rem; }
+
+      /* Section title */
+      .section-title { font-size: clamp(1.5rem, 6.5vw, 2.2rem) !important; }
+      .section-desc { font-size: 0.88rem !important; margin-bottom: 2rem !important; }
+
+      /* Staff grid — 2 columns on mobile */
+      .staff-grid { grid-template-columns: repeat(2, 1fr); gap: 0.85rem; }
+      .staff-card { padding: 1.1rem 0.75rem; }
+      .staff-av { width: 48px; height: 48px; font-size: 1.15rem; }
+      .staff-name { font-size: 0.75rem; }
+      .staff-role { font-size: 0.62rem; }
+      .staff-card-vip { max-width: 100%; grid-column: 1 / -1; padding: 1.4rem 1rem; }
+      .staff-av-vip { width: 68px; height: 68px; font-size: 1.6rem; }
+      .staff-name-vip { font-size: 0.95rem; }
+
+      /* ILS canvas */
+      #ilsCanvas { height: 200px !important; }
+      #papiCanvas { height: 200px !important; }
+      .ils-legend { gap: 0.5rem; }
+      .ils-legend-item { font-size: 0.72rem; }
+
+      /* PAPI dots */
+      .pd { width: 16px; height: 16px; }
+      .papi-lights-row { gap: 0.5rem; padding: 0.6rem 0.7rem; }
+      .papi-label { font-size: 0.75rem; }
+      .papi-status { font-size: 0.65rem; padding: 0.15rem 0.5rem; }
+
+      /* ILS cards */
+      .ils-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .ils-card { padding: 1.2rem; }
+      .mobile-menu .language-switcher { display: flex; }
+
+      /* Gallery */
+      .gal-grid { grid-template-columns: 1fr; grid-template-rows: auto; gap: 0.75rem; }
+
+      /* Contact */
+      .con-grid { grid-template-columns: 1fr; gap: 1rem; }
+
+      /* Footer */
+      footer { padding: 1.5rem 1rem 1rem; }
+
+      /* Feedback */
+      .feedback-card { padding: 1.4rem 1rem; }
+
+      /* Team modal */
+      .team-modal { padding: 1.4rem 1rem; max-width: 95vw; }
+      .modal-av { width: 60px; height: 60px; font-size: 1.5rem; }
+      .modal-name { font-size: 1.05rem; }
+      .modal-info-text { font-size: 0.82rem; }
+
+      /* Announcement card */
+      .ann-card { flex-direction: column; text-align: center; gap: 0.8rem; padding: 1.2rem; }
+
+      /* Tables */
+      .tbl-wrap { font-size: 0.8rem; }
+      table th, table td { padding: 0.5rem 0.7rem; }
     }
 
     @media(max-width:400px){
-      .hero-logo-img { width: 120px; height: 120px; }
+      .hero-logo-img { width: 90px !important; height: 90px !important; }
       .staff-grid { grid-template-columns: 1fr 1fr; }
-      .hero-eyebrow { font-size:0.58rem; letter-spacing:2px; }
+      .hero-eyebrow { font-size: 0.56rem !important; letter-spacing: 1.5px !important; }
+      .hero-title { font-size: 1.65rem !important; }
+      .hero-btns { flex-direction: column !important; align-items: center !important; }
+      .hero-btns a { width: 100% !important; max-width: 240px !important; text-align: center !important; }
     }
 
   </style>
