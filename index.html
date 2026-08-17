@@ -1143,29 +1143,40 @@ document.addEventListener('keydown', function(e) {
       return `✦ **Smart AI Response**\n\nAapka sawal: *"${q}"*\n\nMain ek universal intelligent assistant hu. Live internet aur open-domain query search ke liye aap Netlify Environment Variables mein \`GEMINI_API_KEY\` add kar sakte hain, ya mujhse **Airbus A320, Boeing 737, PAPI, ILS, Jet Engines, Black Box, Weather, Team Majid ya Science/Math** ke baare mein pooch sakte hain!`;
     }
 
-    // Direct Client-Side Gemini Fallback (Calls REST API if API Key is configured in LocalStorage or window)
-    async function callDirectClientGemini(query, key) {
-      if (!key) return null;
-      try {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
-        const payload = {
-          contents: [{ role: 'user', parts: [{ text: query }] }],
-          systemInstruction: {
-            parts: [{ text: "You are an intelligent universal AI assistant for GMKDS Airport Bhopal. Answer any query (General Knowledge, Science, Math, Coding, Aviation, Aircraft, Airport) accurately, politely, and formatted in clean markdown." }]
-          },
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
-        };
-        const res = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          const data = await res.json();
-          return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    // Direct Client-Side Gemini Fallback (Calls REST API with embedded or custom key)
+    const DEFAULT_EMBEDDED_KEY = 'AQ.Ab8RN6Lm4Pov3mjcRkI3KTghdz96rGMjyAd7gphyx94-C9evpA';
+
+    async function callDirectClientGemini(query, customKey) {
+      const activeKey = (customKey || localStorage.getItem('gemini_api_key') || DEFAULT_EMBEDDED_KEY || '').trim().replace(/^["']|["']$/g, '');
+      if (!activeKey) return null;
+
+      const models = ['gemini-3.7-flash', 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash'];
+      
+      for (const model of models) {
+        try {
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
+          const payload = {
+            contents: [{ role: 'user', parts: [{ text: query }] }],
+            systemInstruction: {
+              parts: [{ text: "You are an intelligent universal AI assistant for GMKDS Airport Bhopal. Answer any query (General Knowledge, Science, Math, Coding, Aviation, Aircraft, Airport) accurately, politely, and formatted in clean markdown." }]
+            },
+            generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+          };
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) return text;
+          } else {
+            console.warn(`Direct Gemini API failed on model ${model}:`, res.status);
+          }
+        } catch (err) {
+          console.warn(`Direct client Gemini call error for ${model}:`, err);
         }
-      } catch (err) {
-        console.warn("Direct client Gemini call error:", err);
       }
       return null;
     }
@@ -1213,17 +1224,15 @@ document.addEventListener('keydown', function(e) {
 
       let finalAnswer = "";
 
-      // 3. Try Direct Client-side Gemini if user configured key
+      // 3. Try Direct Client-side Gemini (Embedded + Custom Key)
       const storedKey = localStorage.getItem('gemini_api_key');
-      if (storedKey) {
-        try {
-          const directAns = await callDirectClientGemini(query, storedKey);
-          if (directAns) {
-            finalAnswer = directAns;
-          }
-        } catch (e) {
-          console.warn("Direct client Gemini failed:", e);
+      try {
+        const directAns = await callDirectClientGemini(query, storedKey);
+        if (directAns) {
+          finalAnswer = directAns;
         }
+      } catch (e) {
+        console.warn("Direct client Gemini failed:", e);
       }
 
       // 4. Fetch from Server / Netlify Function if not answered yet
@@ -1237,7 +1246,7 @@ document.addEventListener('keydown', function(e) {
             res = await fetch("/api/ai-search", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ query }),
+              body: JSON.stringify({ query, apiKey: storedKey || undefined }),
               signal: controller.signal
             });
           } catch (e) {
@@ -1249,7 +1258,7 @@ document.addEventListener('keydown', function(e) {
               res = await fetch("/.netlify/functions/ai-search", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query }),
+                body: JSON.stringify({ query, apiKey: storedKey || undefined }),
                 signal: controller.signal
               });
             } catch (e) {
